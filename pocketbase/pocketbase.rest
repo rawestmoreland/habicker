@@ -1,0 +1,7 @@
+POST https://thing-lender.fly.dev/remind/sms HTTP/1.1
+content-type: application/json
+
+{
+  "borrower_id": "2hiim1vy8wt5191",
+  "thing_id": "lh4bvv55zfjswdg"
+}

@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "habicker",
+    "slug": "habicker-e7rkirlder-ebvzhscaow",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "com.habicker",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.westmorelandcreative.habitz",
+      "useAppleSignIn": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.westmorelandcreative.habitz"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.125379754802-q71178bsrs6eaplini08hch8jnh78s4j"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "91242625-db95-4757-83fb-c8ba0b34335d"
+      }
+    },
+    "owner": "rawestmoreland",
+    "runtimeVersion": "0.0.1",
+    "updates": {
+      "url": "https://u.expo.dev/91242625-db95-4757-83fb-c8ba0b34335d"
+    }
+  }
+}
