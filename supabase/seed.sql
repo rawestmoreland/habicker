@@ -72,3 +72,8 @@ INSERT INTO habits (name, description, user_id) SELECT 'Habit ' || (ROW_NUMBER()
 -- Insert habit_trackings for each habit created with the above query. completed_on_date should be a random date in the past month
 INSERT INTO habit_trackings (habit_id, completed_on_date) SELECT h.id, current_date - (random() * 30)::int FROM habits h;
 
+INSERT INTO badges (name, description, image_url) VALUES
+('Week Streak', 'Maintain a streak for 7 days', 'week_streak.png'),
+('Month Streak', 'Maintain a streak for 30 days', 'month_streak.png'),
+('10 Completions', 'Complete a habit 10 times', 'ten_completions.png');
+

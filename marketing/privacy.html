@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - Habicker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #fffef0;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      p {
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p>
+        <strong>Last updated: <span id="last-updated"></span></strong>
+      </p>
+      <p>
+        <strong>Habicker</strong> ("we," "us," or "our") operates the Habicker
+        mobile application (the "App"). This page informs you of our policies
+        regarding the collection, use, and disclosure of Personal Information we
+        receive from users of the App.
+      </p>
+
+      <h2>Information Collection and Use</h2>
+      <p>
+        We collect email addresses when you sign up for the App. This
+        information is used solely for the purposes of communication and logging
+        into the App. We do not collect any other personally identifiable
+        information (PII).
+      </p>
+
+      <h2>Communications</h2>
+      <p>
+        We may use your email address to send you information about updates,
+        security alerts, or other important notifications related to the App.
+      </p>
+
+      <h2>Data Security</h2>
+      <p>
+        We take the security of your Personal Information seriously. We
+        implement reasonable security measures to protect your email address
+        from unauthorized access, use, or disclosure.
+      </p>
+
+      <h2>Sharing of Information</h2>
+      <p>
+        We do not share your email address with third parties except as
+        necessary to operate the App or as required by law.
+      </p>
+
+      <h2>Changes to This Privacy Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time. We will notify you
+        of any changes by posting the new Privacy Policy on this page and
+        updating the "Last updated" date above. You are advised to review this
+        Privacy Policy periodically for any changes.
+      </p>
+
+      <h2>Contact Us</h2>
+      <p>
+        If you have any questions about this Privacy Policy, please contact us
+        at:
+        <a href="mailto:support@westmorelandcreative.com"
+          >support@westmorelandcreative.com</a
+        >
+      </p>
+    </div>
+    <script>
+      const lastUpdated = document.getElementById('last-updated');
+      const date = new Date(1719838041 * 1000);
+      const localeDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      lastUpdated.textContent = localeDate;
+    </script>
+  </body>
+</html>

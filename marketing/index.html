@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Habicker - Simplify Your Habits</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="flex flex-col gap-8 content">
+        <div class="flex flex-col">
+          <h2>Simplify Your Habits</h2>
+          <p>
+            Welcome to Habicker, the simple and effective habit tracking app.
+            Add habits you'd like to complete and track your progress
+            effortlessly.
+          </p>
+        </div>
+        <div class="flex justify-between">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <p>&copy; <span id="year"></span> Habicker. All rights reserved.</p>
+    </footer>
+    <script>
+      const yearContainer = document.getElementById('year');
+      yearContainer.textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>

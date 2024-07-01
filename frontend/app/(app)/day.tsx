@@ -71,13 +71,11 @@ export default function DayView() {
         )}
         renderItem={({
           item,
-          index,
         }: {
           item: Tables<'habits'> & {
             key: number;
             habit_trackings: Tables<'habit_trackings'>[];
           };
-          index: number;
         }) => (
           <View
             key={item.key}

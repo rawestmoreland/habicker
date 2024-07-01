@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms of Service - Habicker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      p {
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Terms of Service</h1>
+      <p>
+        <strong>Last updated: <span id="last-updated"></span></strong>
+      </p>
+      <p>
+        Welcome to Habicker! These terms of service ("Terms") apply to your
+        access and use of the Habicker mobile application (the "App"). Please
+        read them carefully.
+      </p>
+
+      <h2>Acceptance of Terms</h2>
+      <p>
+        By accessing or using the App, you agree to be bound by these Terms. If
+        you do not agree to these Terms, you may not use the App.
+      </p>
+
+      <h2>Use of the App</h2>
+      <p>
+        You may use the App for your personal, non-commercial use only. You
+        agree not to use the App for any unlawful or prohibited purpose.
+      </p>
+
+      <h2>User Accounts</h2>
+      <p>
+        To use certain features of the App, you must create an account by
+        providing your email address. You are responsible for maintaining the
+        confidentiality of your account information and for all activities that
+        occur under your account.
+      </p>
+
+      <h2>Privacy</h2>
+      <p>
+        Your use of the App is also governed by our
+        <a href="/privacy">Privacy Policy</a>. Please review our Privacy Policy
+        to understand our practices regarding the collection and use of your
+        information.
+      </p>
+
+      <h2>Intellectual Property</h2>
+      <p>
+        The App and its original content, features, and functionality are and
+        will remain the exclusive property of Habicker and its licensors. You
+        may not use our intellectual property without our prior written consent.
+      </p>
+
+      <h2>Termination</h2>
+      <p>
+        We may terminate or suspend your access to the App immediately, without
+        prior notice or liability, for any reason whatsoever, including without
+        limitation if you breach the Terms.
+      </p>
+
+      <h2>Limitation of Liability</h2>
+      <p>
+        In no event shall Habicker, nor its directors, employees, partners,
+        agents, suppliers, or affiliates, be liable for any indirect,
+        incidental, special, consequential or punitive damages, including
+        without limitation, loss of profits, data, use, goodwill, or other
+        intangible losses, resulting from (i) your use or inability to use the
+        App; (ii) any unauthorized access to or use of our servers and/or any
+        personal information stored therein; (iii) any interruption or cessation
+        of transmission to or from the App; (iv) any bugs, viruses, trojan
+        horses, or the like that may be transmitted to or through our App by any
+        third party; (v) any errors or omissions in any content or for any loss
+        or damage incurred as a result of the use of any content posted,
+        emailed, transmitted, or otherwise made available through the App;
+        and/or (vi) any other matter relating to the App.
+      </p>
+
+      <h2>Changes to Terms</h2>
+      <p>
+        We reserve the right, at our sole discretion, to modify or replace these
+        Terms at any time. If a revision is material, we will try to provide at
+        least 30 days' notice prior to any new terms taking effect. What
+        constitutes a material change will be determined at our sole discretion.
+      </p>
+
+      <h2>Contact Us</h2>
+      <p>
+        If you have any questions about these Terms, please contact us at:
+        <a href="mailto:support@westmorelandcreative.com"
+          >support@westmorelandcreative.com</a
+        >
+      </p>
+    </div>
+    <script>
+      const lastUpdatedContainer = document.getElementById('last-updated');
+      const date = new Date(1719838041 * 1000);
+      lastUpdatedContainer.textContent = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    </script>
+  </body>
+</html>

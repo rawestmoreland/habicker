@@ -31,6 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useUpdateHabit } from '@/lib/hooks/UPDATE/useUpdateHabit';
 import { useUpdateHabitTracking } from '@/lib/hooks/UPDATE/useUpdateHabitTracking';
 import { useDeleteHabit } from '@/lib/hooks/DELETE/useDeleteHabit';
+import { useSupabase } from '@/lib/context/supabase';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -84,7 +85,17 @@ export default function Home() {
     },
   });
 
+  const { supabase } = useSupabase();
+
   useEffect(() => {
+    const testFunction = async () => {
+      const response = await supabase?.functions.invoke('check-badges');
+
+      console.log(response);
+    };
+
+    testFunction();
+
     if (!newHabitTracking) return;
 
     noteForm.reset();
