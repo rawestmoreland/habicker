@@ -13,7 +13,7 @@ import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { Text } from 'react-native-paper';
 
 const windowWidth = Dimensions.get('window').width - 40;
-const quarterWidth = Math.floor(windowWidth / 4);
+const gridWidth = Math.floor(windowWidth / 12);
 
 export default function DayView() {
   const { data: habits, isLoading: habitsLoading } = useGetUserHabits();
@@ -41,21 +41,12 @@ export default function DayView() {
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          justifyContent: 'space-between',
-          flexDirection: 'row',
-        }}
-      >
-        <View style={{ minWidth: quarterWidth }} />
-        {getYesterdayTodayTomorrow.sortedEntries.map((entry) => (
-          <View
-            key={entry[0]}
-            style={{ alignItems: 'center', minWidth: quarterWidth }}
-          >
-            <Text>{format(new Date(entry[1]), 'iii')}</Text>
-            <Text>{new Date(entry[1]).getDate()}</Text>
-          </View>
+      <View style={styles.headerRow}>
+        <Text style={styles.headerCell}></Text>
+        {getYesterdayTodayTomorrow.sortedEntries.map(([key, date]) => (
+          <Text key={key} style={styles.headerCell}>
+            {format(date, 'MMM d')}
+          </Text>
         ))}
       </View>
       <FlatList
@@ -69,65 +60,36 @@ export default function DayView() {
             ...habit,
           })
         )}
-        renderItem={({
-          item,
-        }: {
-          item: Tables<'habits'> & {
-            key: number;
-            habit_trackings: Tables<'habit_trackings'>[];
-          };
-        }) => (
-          <View
-            key={item.key}
-            style={{
-              marginTop: 16,
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexDirection: 'row',
-            }}
-          >
-            <Text style={{ minWidth: quarterWidth }}>{item.name}</Text>
-            {getYesterdayTodayTomorrow.sortedEntries.map((entry, index) => {
-              const hasTrackingForDay = Boolean(item.habit_trackings.length)
-                ? item.habit_trackings.some(
-                    (tracking: Tables<'habit_trackings'>) => {
-                      return isSameDay(
-                        new Date(tracking.completed_on_date as string),
-                        new Date(entry[1])
-                      );
-                    }
-                  )
-                : false;
+        renderItem={({ item }) => {
+          return (
+            <View key={item.key} style={styles.row}>
+              <Text style={styles.activityCell}>{item.name}</Text>
+              {getYesterdayTodayTomorrow.sortedEntries.map((entry, index) => {
+                const hasTrackingForDay = Boolean(item.habit_trackings.length)
+                  ? item.habit_trackings.some(
+                      (tracking: Tables<'habit_trackings'>) => {
+                        return isSameDay(
+                          new Date(tracking.completed_on_date as string),
+                          new Date(entry[1])
+                        );
+                      }
+                    )
+                  : false;
 
-              return (
-                <View
-                  key={`${item.id}-${entry[0]}`}
-                  style={{ minWidth: quarterWidth, alignItems: 'center' }}
-                >
-                  {hasTrackingForDay ? (
+                return (
+                  <View style={styles.cell} key={index}>
                     <View
-                      style={{
-                        height: 20,
-                        width: 20,
-                        borderRadius: 10,
-                        backgroundColor: 'blue',
-                      }}
-                    />
-                  ) : (
-                    <View
-                      style={{
-                        height: 20,
-                        width: 20,
-                        borderRadius: 10,
-                        borderWidth: 1,
-                      }}
-                    />
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        )}
+                      style={[
+                        styles.circle,
+                        hasTrackingForDay ? styles.complete : styles.incomplete,
+                      ]}
+                    ></View>
+                  </View>
+                );
+              })}
+            </View>
+          );
+        }}
       />
     </View>
   );
@@ -136,8 +98,48 @@ export default function DayView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+  },
+  headerCell: {
+    flex: 1,
+    textAlign: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    padding: 8,
+  },
+  row: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  activityCell: {
+    flex: 1,
+    textAlign: 'left',
+    padding: 8,
+    fontWeight: 'bold',
+  },
+  cell: {
+    flex: 1,
+    textAlign: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 8,
+  },
+  circle: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+  },
+  complete: {
+    backgroundColor: 'blue',
+  },
+  incomplete: {
+    borderWidth: 2,
   },
 });
