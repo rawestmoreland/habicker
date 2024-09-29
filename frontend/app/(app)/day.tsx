@@ -1,4 +1,6 @@
 import { LoadingState } from '@/components/LoadingState';
+import { useCreateHabitTracking } from '@/lib/hooks/CREATE/useCreateHabitTracking';
+import { useDeleteHabitTracking } from '@/lib/hooks/DELETE/useDeleteHabitTracking';
 import { useGetUserHabits } from '@/lib/hooks/GET/useGetUserHabits';
 import { Tables } from '@/types/supabase';
 import {
@@ -9,14 +11,26 @@ import {
   subDays,
 } from 'date-fns';
 import { useMemo } from 'react';
-import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  Dimensions,
+  Pressable,
+} from 'react-native';
 import { Text } from 'react-native-paper';
+import { useIsMutating } from 'react-query';
 
 const windowWidth = Dimensions.get('window').width - 40;
 const gridWidth = Math.floor(windowWidth / 12);
 
 export default function DayView() {
   const { data: habits, isLoading: habitsLoading } = useGetUserHabits();
+  const { mutate: createHabitTracking, isLoading: isCreatingTracking } =
+    useCreateHabitTracking();
+  const { isLoading: isDeletingTracking, mutate: deleteTracking } =
+    useDeleteHabitTracking();
+  const isMutating = useIsMutating();
 
   const getYesterdayTodayTomorrow = useMemo(() => {
     const today = startOfToday();
@@ -42,7 +56,7 @@ export default function DayView() {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.headerCell}></Text>
+        <Text style={styles.headerCell} children={undefined} />
         {getYesterdayTodayTomorrow.sortedEntries.map(([key, date]) => (
           <Text key={key} style={styles.headerCell}>
             {format(date, 'MMM d')}
@@ -75,15 +89,38 @@ export default function DayView() {
                       }
                     )
                   : false;
+                const trackingForDay = item.habit_trackings.find((tracking) => {
+                  return isSameDay(
+                    new Date(tracking.completed_on_date as string),
+                    new Date(entry[1])
+                  );
+                });
 
                 return (
                   <View style={styles.cell} key={index}>
-                    <View
+                    <Pressable
+                      disabled={
+                        isCreatingTracking ||
+                        isDeletingTracking ||
+                        Boolean(isMutating)
+                      }
+                      onPress={() => {
+                        if (isMutating) return;
+
+                        if (hasTrackingForDay && trackingForDay) {
+                          deleteTracking(trackingForDay.id);
+                        } else {
+                          createHabitTracking({
+                            habit_id: item.id,
+                            completed_on_date: entry[1],
+                          });
+                        }
+                      }}
                       style={[
                         styles.circle,
                         hasTrackingForDay ? styles.complete : styles.incomplete,
                       ]}
-                    ></View>
+                    ></Pressable>
                   </View>
                 );
               })}
@@ -132,9 +169,9 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   circle: {
-    height: 20,
-    width: 20,
-    borderRadius: 10,
+    height: 30,
+    width: 30,
+    borderRadius: 15,
   },
   complete: {
     backgroundColor: 'blue',

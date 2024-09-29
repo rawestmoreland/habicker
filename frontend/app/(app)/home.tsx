@@ -282,7 +282,7 @@ export default function Home() {
                       }
                     : {}),
                 }}
-                onDayLongPress={(day) => {
+                onDayLongPress={(day: any) => {
                   if (
                     isCreating ||
                     isDeleting ||
@@ -305,7 +305,7 @@ export default function Home() {
                     setHabitToAddNote(habitTracking.id);
                   }
                 }}
-                onDayPress={(day) => {
+                onDayPress={(day: any) => {
                   if (isCreating || isDeleting) return;
                   if (completedDates?.includes(day.dateString)) {
                     const habitTracking = habitTrackings?.find(
