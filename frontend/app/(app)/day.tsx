@@ -19,16 +19,17 @@ import {
   Pressable,
 } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useIsMutating } from 'react-query';
+import { useIsMutating } from '@tanstack/react-query';
+import { createCompletionDate } from '@/lib/utils/dates';
 
 const windowWidth = Dimensions.get('window').width - 40;
 const gridWidth = Math.floor(windowWidth / 12);
 
 export default function DayView() {
-  const { data: habits, isLoading: habitsLoading } = useGetUserHabits();
-  const { mutate: createHabitTracking, isLoading: isCreatingTracking } =
+  const { data: habits, isPending: habitsLoading } = useGetUserHabits();
+  const { mutate: createHabitTracking, isPending: isCreatingTracking } =
     useCreateHabitTracking();
-  const { isLoading: isDeletingTracking, mutate: deleteTracking } =
+  const { isPending: isDeletingTracking, mutate: deleteTracking } =
     useDeleteHabitTracking();
   const isMutating = useIsMutating();
 
@@ -110,9 +111,12 @@ export default function DayView() {
                         if (hasTrackingForDay && trackingForDay) {
                           deleteTracking(trackingForDay.id);
                         } else {
+                          const completionDate = createCompletionDate(
+                            format(entry[1], 'yyyy-MM-dd')
+                          );
                           createHabitTracking({
                             habit_id: item.id,
-                            completed_on_date: entry[1],
+                            completed_on_date: completionDate,
                           });
                         }
                       }}
@@ -172,6 +176,8 @@ const styles = StyleSheet.create({
     height: 30,
     width: 30,
     borderRadius: 15,
+    borderColor: '#000',
+    borderWidth: 2,
   },
   complete: {
     backgroundColor: 'blue',

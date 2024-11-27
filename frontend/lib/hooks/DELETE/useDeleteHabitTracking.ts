@@ -1,5 +1,5 @@
 import { useSupabase } from '@/lib/context/supabase';
-import { useQueryClient, useMutation } from 'react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 
 export function useDeleteHabitTracking() {
   const { supabase } = useSupabase();

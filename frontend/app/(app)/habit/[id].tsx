@@ -12,7 +12,7 @@ import { Text } from 'react-native-paper';
 export default function Habit() {
   const params = useLocalSearchParams();
 
-  const { data: habit, isLoading: habitLoading } = useGetHabitById(
+  const { data: habit, isPending: habitLoading } = useGetHabitById(
     params.id as string
   );
 

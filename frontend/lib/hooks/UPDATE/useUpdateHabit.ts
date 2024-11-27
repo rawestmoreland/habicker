@@ -1,16 +1,21 @@
-
-import { useSupabase } from "@/lib/context/supabase";
-import { useMutation, useQueryClient } from "react-query";
+import { useSupabase } from '@/lib/context/supabase';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useUpdateHabit() {
-  const { supabase } = useSupabase()
+  const { supabase } = useSupabase();
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: { name?: string; description?: string } }) => await supabase?.from('habits').update(payload).eq('id', id),
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: { name?: string; description?: string };
+    }) => await supabase?.from('habits').update(payload).eq('id', id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habits'] })
-    }
-  })
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+    },
+  });
 }

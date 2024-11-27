@@ -31,10 +31,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useUpdateHabit } from '@/lib/hooks/UPDATE/useUpdateHabit';
 import { useUpdateHabitTracking } from '@/lib/hooks/UPDATE/useUpdateHabitTracking';
 import { useDeleteHabit } from '@/lib/hooks/DELETE/useDeleteHabit';
-
+import { createCompletionDate } from '@/lib/utils/dates';
+import { debugDateTime } from '@/lib/utils/dates';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function Home() {
+  debugDateTime(new Date());
+
   const { signOut } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -42,25 +45,30 @@ export default function Home() {
   const [habitToEdit, setHabitToEdit] = useState<string | undefined>();
   const [habitToAddNote, setHabitToAddNote] = useState<string | undefined>();
 
-  const { data: habits, isLoading: habitsLoading } = useGetUserHabits();
-  const {
-    mutate: createHabitTracking,
-    isLoading: isCreating,
-    variables,
-  } = useCreateHabitTracking();
-  const { mutate: deleteHabitTracking, isLoading: isDeleting } =
+  const { data: habits, isPending: habitsLoading } = useGetUserHabits();
+  const { mutate: createHabitTracking, isPending: isCreating } =
+    useCreateHabitTracking();
+  const { mutate: deleteHabitTracking, isPending: isDeleting } =
     useDeleteHabitTracking();
-  const { mutate: deleteHabit, isLoading: isDeletingHabit } = useDeleteHabit();
+  const { mutate: deleteHabit } = useDeleteHabit();
   const {
     mutate: updateHabit,
-    isLoading: isUpdating,
+    isPending: isUpdating,
     data: updatedHabit,
   } = useUpdateHabit();
-  const {
-    mutate: updateHabitTracking,
-    isLoading: isUpdatingHabitTracking,
-    data: newHabitTracking,
-  } = useUpdateHabitTracking();
+  const { mutate: updateHabitTracking, isPending: isUpdatingHabitTracking } =
+    useUpdateHabitTracking();
+
+  const handleDayPress = ({
+    day,
+    habit_id,
+  }: {
+    day: { dateString: string };
+    habit_id: string;
+  }) => {
+    const completionDate = createCompletionDate(day.dateString);
+    createHabitTracking({ completed_on_date: completionDate, habit_id });
+  };
 
   const updateFormSchema = z.object({
     name: z.string().min(2).max(25),
@@ -273,14 +281,6 @@ export default function Home() {
                       },
                     };
                   }, {}),
-                  // Optimistically add the new tracking to the calendar
-                  ...(isCreating
-                    ? {
-                        [variables.completed_on_date]: {
-                          selected: true,
-                        },
-                      }
-                    : {}),
                 }}
                 onDayLongPress={(day: any) => {
                   if (
@@ -305,7 +305,10 @@ export default function Home() {
                     setHabitToAddNote(habitTracking.id);
                   }
                 }}
-                onDayPress={(day: any) => {
+                onDayPress={(day: {
+                  timestamp: number;
+                  dateString: string;
+                }) => {
                   if (isCreating || isDeleting) return;
                   if (completedDates?.includes(day.dateString)) {
                     const habitTracking = habitTrackings?.find(
@@ -320,10 +323,7 @@ export default function Home() {
                       deleteHabitTracking(habitTracking.id);
                     }
                   } else {
-                    createHabitTracking({
-                      habit_id: item.id,
-                      completed_on_date: new Date(day.timestamp).toISOString(),
-                    });
+                    handleDayPress({ day, habit_id: item.id });
                   }
                 }}
               />
@@ -351,21 +351,6 @@ export default function Home() {
             { icon: 'logout', label: 'Sign Out', onPress: signOut },
           ]}
         />
-        {/* <Dialog
-          visible={Boolean(habitToRecord) && !isEmpty(habitToRecord)}
-          onDismiss={() => setHabitToRecord(undefined)}
-        >
-          <Dialog.Title>Record Habit</Dialog.Title>
-          <Dialog.Content>
-            <Text>{`Record progress for ${habitToRecord?.habitId}`}</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setHabitToRecord(undefined)}>
-              Nevermind
-            </Button>
-            <Button onPress={handleAddHabitTracking}>Record</Button>
-          </Dialog.Actions>
-        </Dialog> */}
       </Portal>
       <Modal
         avoidKeyboard

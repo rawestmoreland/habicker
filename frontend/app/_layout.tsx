@@ -8,10 +8,17 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import { AuthProvider } from '@/lib/context/auth';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SupabaseProvider } from '@/lib/context/supabase';
 
 const queryClient = new QueryClient();
+
+// const mockTimeZone = 'America/New_York';
+// const dateTimeFormat = Intl.DateTimeFormat().resolvedOptions();
+// Object.defineProperty(dateTimeFormat, 'timeZone', { value: mockTimeZone });
+// Object.defineProperty(Intl.DateTimeFormat.prototype, 'resolvedOptions', {
+//   value: () => dateTimeFormat,
+// });
 
 export {
   // Catch any errors thrown by the Layout component.
