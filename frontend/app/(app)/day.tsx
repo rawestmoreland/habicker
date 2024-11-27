@@ -1,3 +1,12 @@
+import React from 'react';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  Dimensions,
+} from 'react-native';
+import { Icon, Text } from 'react-native-paper';
 import { LoadingState } from '@/components/LoadingState';
 import { useCreateHabitTracking } from '@/lib/hooks/CREATE/useCreateHabitTracking';
 import { useDeleteHabitTracking } from '@/lib/hooks/DELETE/useDeleteHabitTracking';
@@ -11,21 +20,12 @@ import {
   subDays,
 } from 'date-fns';
 import { useMemo } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  Pressable,
-} from 'react-native';
-import { Text } from 'react-native-paper';
 import { useIsMutating } from '@tanstack/react-query';
 import { createCompletionDate } from '@/lib/utils/dates';
 
 const windowWidth = Dimensions.get('window').width - 40;
-const gridWidth = Math.floor(windowWidth / 12);
 
-export default function DayView() {
+const DayView = () => {
   const { data: habits, isPending: habitsLoading } = useGetUserHabits();
   const { mutate: createHabitTracking, isPending: isCreatingTracking } =
     useCreateHabitTracking();
@@ -39,12 +39,10 @@ export default function DayView() {
     const twoDaysAgo = subDays(yesterday, 1);
 
     const results = { yesterday, today, twoDaysAgo };
-
     const entries = Object.entries(results);
-
     const sortedEntries = entries.sort(
-      // @ts-ignore
-      ([, dateA], [, dateB]) => new Date(dateA) - new Date(dateB)
+      ([, dateA], [, dateB]) =>
+        new Date(dateA).getTime() - new Date(dateB).getTime()
     );
 
     return { values: { yesterday, today, twoDaysAgo }, sortedEntries };
@@ -57,13 +55,16 @@ export default function DayView() {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.headerCell} children={undefined} />
+        <View style={styles.habitInfoCell}>
+          <Text style={styles.headerText}>Habit</Text>
+        </View>
         {getYesterdayTodayTomorrow.sortedEntries.map(([key, date]) => (
-          <Text key={key} style={styles.headerCell}>
-            {format(date, 'MMM d')}
-          </Text>
+          <View key={key} style={styles.dateCell}>
+            <Text style={styles.headerText}>{format(date, 'MMM d')}</Text>
+          </View>
         ))}
       </View>
+
       <FlatList
         data={habits?.data?.map(
           (
@@ -75,114 +76,130 @@ export default function DayView() {
             ...habit,
           })
         )}
-        renderItem={({ item }) => {
-          return (
-            <View key={item.key} style={styles.row}>
-              <Text style={styles.activityCell}>{item.name}</Text>
-              {getYesterdayTodayTomorrow.sortedEntries.map((entry, index) => {
-                const hasTrackingForDay = Boolean(item.habit_trackings.length)
-                  ? item.habit_trackings.some(
-                      (tracking: Tables<'habit_trackings'>) => {
-                        return isSameDay(
-                          new Date(tracking.completed_on_date as string),
-                          new Date(entry[1])
-                        );
-                      }
-                    )
-                  : false;
-                const trackingForDay = item.habit_trackings.find((tracking) => {
-                  return isSameDay(
-                    new Date(tracking.completed_on_date as string),
-                    new Date(entry[1])
-                  );
-                });
-
-                return (
-                  <View style={styles.cell} key={index}>
-                    <Pressable
-                      disabled={
-                        isCreatingTracking ||
-                        isDeletingTracking ||
-                        Boolean(isMutating)
-                      }
-                      onPress={() => {
-                        if (isMutating) return;
-
-                        if (hasTrackingForDay && trackingForDay) {
-                          deleteTracking(trackingForDay.id);
-                        } else {
-                          const completionDate = createCompletionDate(
-                            format(entry[1], 'yyyy-MM-dd')
-                          );
-                          createHabitTracking({
-                            habit_id: item.id,
-                            completed_on_date: completionDate,
-                          });
-                        }
-                      }}
-                      style={[
-                        styles.circle,
-                        hasTrackingForDay ? styles.complete : styles.incomplete,
-                      ]}
-                    ></Pressable>
-                  </View>
-                );
-              })}
+        renderItem={({ item }) => (
+          <View style={styles.habitRow}>
+            <View style={styles.habitInfoCell}>
+              <Text style={styles.habitName}>{item.name}</Text>
             </View>
-          );
-        }}
+
+            {getYesterdayTodayTomorrow.sortedEntries.map((entry, index) => {
+              const hasTrackingForDay = Boolean(item.habit_trackings.length)
+                ? item.habit_trackings.some(
+                    (tracking: Tables<'habit_trackings'>) =>
+                      isSameDay(
+                        new Date(tracking.completed_on_date as string),
+                        new Date(entry[1])
+                      )
+                  )
+                : false;
+              const trackingForDay = item.habit_trackings.find((tracking) =>
+                isSameDay(
+                  new Date(tracking.completed_on_date as string),
+                  new Date(entry[1])
+                )
+              );
+
+              return (
+                <View style={styles.dateCell} key={index}>
+                  <Pressable
+                    disabled={
+                      isCreatingTracking ||
+                      isDeletingTracking ||
+                      Boolean(isMutating)
+                    }
+                    onPress={() => {
+                      if (isMutating) return;
+
+                      if (hasTrackingForDay && trackingForDay) {
+                        deleteTracking(trackingForDay.id);
+                      } else {
+                        const completionDate = createCompletionDate(
+                          format(entry[1], 'yyyy-MM-dd')
+                        );
+                        createHabitTracking({
+                          habit_id: item.id,
+                          completed_on_date: completionDate,
+                        });
+                      }
+                    }}
+                    style={[
+                      styles.completionButton,
+                      hasTrackingForDay
+                        ? styles.completedButton
+                        : styles.incompletedButton,
+                    ]}
+                  >
+                    <Icon
+                      source={hasTrackingForDay ? 'check' : 'close'}
+                      size={24}
+                      color={hasTrackingForDay ? 'white' : '#333'}
+                    />
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        )}
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#fff',
   },
   headerRow: {
     flexDirection: 'row',
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#000',
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#f5f5f5',
   },
-  headerCell: {
-    flex: 1,
-    textAlign: 'center',
-    justifyContent: 'center',
-    fontWeight: 'bold',
-    padding: 8,
-  },
-  row: {
-    justifyContent: 'space-between',
+  habitRow: {
     flexDirection: 'row',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#e0e0e0',
   },
-  activityCell: {
-    flex: 1,
-    textAlign: 'left',
-    padding: 8,
-    fontWeight: 'bold',
-  },
-  cell: {
-    flex: 1,
-    textAlign: 'center',
+  habitInfoCell: {
+    flex: 2,
     justifyContent: 'center',
+  },
+  dateCell: {
+    flex: 1,
     alignItems: 'center',
-    padding: 8,
+    justifyContent: 'center',
   },
-  circle: {
-    height: 30,
+  headerText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  habitName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  completionButton: {
     width: 30,
+    height: 30,
     borderRadius: 15,
-    borderColor: '#000',
     borderWidth: 2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#ccc',
   },
-  complete: {
-    backgroundColor: 'blue',
+  completedButton: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
   },
-  incomplete: {
-    borderWidth: 2,
+  incompletedButton: {
+    backgroundColor: '#ccc',
   },
 });
+
+export default DayView;

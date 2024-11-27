@@ -32,12 +32,10 @@ import { useUpdateHabit } from '@/lib/hooks/UPDATE/useUpdateHabit';
 import { useUpdateHabitTracking } from '@/lib/hooks/UPDATE/useUpdateHabitTracking';
 import { useDeleteHabit } from '@/lib/hooks/DELETE/useDeleteHabit';
 import { createCompletionDate } from '@/lib/utils/dates';
-import { debugDateTime } from '@/lib/utils/dates';
+
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function Home() {
-  debugDateTime(new Date());
-
   const { signOut } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);

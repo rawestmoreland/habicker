@@ -47,7 +47,10 @@
     },
     "preview-store": {
       "extends": "preview",
-      "distribution": "store"
+      "distribution": "store",
+      "env": {
+        "APP_ENV": "preview"
+      }
     },
     "production": {
       "channel": "production",
