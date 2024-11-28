@@ -262,12 +262,13 @@ export default function Home() {
                     header: { height: 0, opacity: 0 },
                   },
                   calendarBackground: 'transparent',
-                  textDisabledColor: '#545454',
+                  textDisabledColor: '#ccc',
                 }}
                 hideExtraDays
                 hideArrows
                 disableArrowRight
                 disableArrowLeft
+                markingType='custom'
                 markedDates={{
                   ...completedDates?.reduce((acc: any, date: any) => {
                     if (!date) return acc;
@@ -276,6 +277,15 @@ export default function Home() {
                       ...acc,
                       [date]: {
                         selected: true,
+                        customStyles: {
+                          container: {
+                            backgroundColor: '#4CAF50',
+                          },
+                          text: {
+                            color: '#000',
+                            fontWeight: 'semibold',
+                          },
+                        },
                       },
                     };
                   }, {}),

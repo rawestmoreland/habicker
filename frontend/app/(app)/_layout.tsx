@@ -7,11 +7,12 @@ export default function AppLayout() {
       <Stack.Screen
         name='home'
         options={{
-          title: 'Habits',
+          title: 'Habicker',
         }}
       />
-      <Stack.Screen name='create-habit' options={{ title: 'Create' }} />
+      <Stack.Screen name='create-habit' options={{ title: 'Create Habit' }} />
       <Stack.Screen name='day' options={{ title: 'Day View' }} />
+      <Stack.Screen name='habit/[id]' options={{ title: 'Habit Detail' }} />
     </Stack>
   );
 }
