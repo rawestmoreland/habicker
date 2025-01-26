@@ -5,6 +5,7 @@ import {
   FlatList,
   Pressable,
   Dimensions,
+  SafeAreaView,
 } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
 import { LoadingState } from '@/components/LoadingState';
@@ -53,95 +54,97 @@ const DayView = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.habitInfoCell}>
-          <Text style={styles.headerText}>Habit</Text>
-        </View>
-        {getYesterdayTodayTomorrow.sortedEntries.map(([key, date]) => (
-          <View key={key} style={styles.dateCell}>
-            <Text style={styles.headerText}>{format(date, 'MMM d')}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={styles.container}>
+        <View style={styles.headerRow}>
+          <View style={styles.habitInfoCell}>
+            <Text style={styles.headerText}>Habit</Text>
           </View>
-        ))}
-      </View>
-
-      <FlatList
-        data={habits?.data?.map(
-          (
-            habit: Tables<'habits'> & {
-              habit_trackings: Tables<'habit_trackings'>[];
-            }
-          ) => ({
-            key: habit.id,
-            ...habit,
-          })
-        )}
-        renderItem={({ item }) => (
-          <View style={styles.habitRow}>
-            <View style={styles.habitInfoCell}>
-              <Text style={styles.habitName}>{item.name}</Text>
+          {getYesterdayTodayTomorrow.sortedEntries.map(([key, date]) => (
+            <View key={key} style={styles.dateCell}>
+              <Text style={styles.headerText}>{format(date, 'MMM d')}</Text>
             </View>
+          ))}
+        </View>
 
-            {getYesterdayTodayTomorrow.sortedEntries.map((entry, index) => {
-              const hasTrackingForDay = Boolean(item.habit_trackings.length)
-                ? item.habit_trackings.some(
-                    (tracking: Tables<'habit_trackings'>) =>
-                      isSameDay(
-                        new Date(tracking.completed_on_date as string),
-                        new Date(entry[1])
-                      )
+        <FlatList
+          data={habits?.data?.map(
+            (
+              habit: Tables<'habits'> & {
+                habit_trackings: Tables<'habit_trackings'>[];
+              }
+            ) => ({
+              key: habit.id,
+              ...habit,
+            })
+          )}
+          renderItem={({ item }) => (
+            <View style={styles.habitRow}>
+              <View style={styles.habitInfoCell}>
+                <Text style={styles.habitName}>{item.name}</Text>
+              </View>
+
+              {getYesterdayTodayTomorrow.sortedEntries.map((entry, index) => {
+                const hasTrackingForDay = Boolean(item.habit_trackings.length)
+                  ? item.habit_trackings.some(
+                      (tracking: Tables<'habit_trackings'>) =>
+                        isSameDay(
+                          new Date(tracking.completed_on_date as string),
+                          new Date(entry[1])
+                        )
+                    )
+                  : false;
+                const trackingForDay = item.habit_trackings.find((tracking) =>
+                  isSameDay(
+                    new Date(tracking.completed_on_date as string),
+                    new Date(entry[1])
                   )
-                : false;
-              const trackingForDay = item.habit_trackings.find((tracking) =>
-                isSameDay(
-                  new Date(tracking.completed_on_date as string),
-                  new Date(entry[1])
-                )
-              );
+                );
 
-              return (
-                <View style={styles.dateCell} key={index}>
-                  <Pressable
-                    disabled={
-                      isCreatingTracking ||
-                      isDeletingTracking ||
-                      Boolean(isMutating)
-                    }
-                    onPress={() => {
-                      if (isMutating) return;
-
-                      if (hasTrackingForDay && trackingForDay) {
-                        deleteTracking(trackingForDay.id);
-                      } else {
-                        const completionDate = createCompletionDate(
-                          format(entry[1], 'yyyy-MM-dd')
-                        );
-                        createHabitTracking({
-                          habit_id: item.id,
-                          completed_on_date: completionDate,
-                        });
+                return (
+                  <View style={styles.dateCell} key={index}>
+                    <Pressable
+                      disabled={
+                        isCreatingTracking ||
+                        isDeletingTracking ||
+                        Boolean(isMutating)
                       }
-                    }}
-                    style={[
-                      styles.completionButton,
-                      hasTrackingForDay
-                        ? styles.completedButton
-                        : styles.incompletedButton,
-                    ]}
-                  >
-                    <Icon
-                      source={hasTrackingForDay ? 'check' : 'close'}
-                      size={24}
-                      color={hasTrackingForDay ? 'white' : '#333'}
-                    />
-                  </Pressable>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      />
-    </View>
+                      onPress={() => {
+                        if (isMutating) return;
+
+                        if (hasTrackingForDay && trackingForDay) {
+                          deleteTracking(trackingForDay.id);
+                        } else {
+                          const completionDate = createCompletionDate(
+                            format(entry[1], 'yyyy-MM-dd')
+                          );
+                          createHabitTracking({
+                            habit_id: item.id,
+                            completed_on_date: completionDate,
+                          });
+                        }
+                      }}
+                      style={[
+                        styles.completionButton,
+                        hasTrackingForDay
+                          ? styles.completedButton
+                          : styles.incompletedButton,
+                      ]}
+                    >
+                      <Icon
+                        source={hasTrackingForDay ? 'check' : 'close'}
+                        size={24}
+                        color={hasTrackingForDay ? 'white' : '#333'}
+                      />
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 

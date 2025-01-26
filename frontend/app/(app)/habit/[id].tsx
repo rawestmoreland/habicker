@@ -1,5 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  SafeAreaView,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Text } from 'react-native-paper';
 import { LineChart } from 'react-native-gifted-charts';
@@ -88,80 +94,82 @@ export default function HabitDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>{habit?.data?.name}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>{habit?.data?.name}</Text>
 
-      {/* Overall Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {stats.overallStats.overallCompletionRate}%
-          </Text>
-          <Text style={styles.statLabel}>Overall Completion</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {stats.overallStats.totalCompletedDays}
-          </Text>
-          <Text style={styles.statLabel}>Days Completed</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {stats.overallStats.totalDaysSinceCreation}
-          </Text>
-          <Text style={styles.statLabel}>Total Days</Text>
-        </View>
-      </View>
-
-      {/* Completion Rate Graph */}
-      <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>6-Month Completion Rate</Text>
-        <LineChart
-          data={stats.chartData}
-          height={250}
-          spacing={40}
-          initialSpacing={20}
-          color='#007AFF'
-          thickness={2}
-          startFillColor='rgba(0, 122, 255, 0.3)'
-          endFillColor='rgba(0, 122, 255, 0.01)'
-          startOpacity={0.9}
-          endOpacity={0.2}
-          backgroundColor='white'
-          yAxisLabelWidth={40}
-          yAxisTextStyle={{ color: '#666' }}
-          xAxisLabelTextStyle={{ color: '#666' }}
-          hideRules
-          yAxisThickness={1}
-          xAxisThickness={1}
-          yAxisTextNumberOfLines={1}
-          yAxisLabelPrefix=''
-          yAxisLabelSuffix='%'
-          curved
-          showDataPointOnFocus
-          maxValue={100}
-          noOfSections={5}
-        />
-      </View>
-
-      {/* Monthly Breakdown */}
-      <View style={styles.breakdownContainer}>
-        <Text style={styles.breakdownTitle}>Monthly Breakdown</Text>
-        {stats.monthlyStats.map((monthStat, index) => (
-          <View key={index} style={styles.monthRow}>
-            <Text style={styles.monthName}>{monthStat.month}</Text>
-            <View style={styles.monthStats}>
-              <Text style={styles.monthCompletion}>
-                {monthStat.completionRate}% completed
-              </Text>
-              <Text style={styles.monthDays}>
-                {monthStat.completedDays}/{monthStat.totalDays} days
-              </Text>
-            </View>
+        {/* Overall Stats Cards */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {stats.overallStats.overallCompletionRate}%
+            </Text>
+            <Text style={styles.statLabel}>Overall Completion</Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {stats.overallStats.totalCompletedDays}
+            </Text>
+            <Text style={styles.statLabel}>Days Completed</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {stats.overallStats.totalDaysSinceCreation}
+            </Text>
+            <Text style={styles.statLabel}>Total Days</Text>
+          </View>
+        </View>
+
+        {/* Completion Rate Graph */}
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>6-Month Completion Rate</Text>
+          <LineChart
+            data={stats.chartData}
+            height={250}
+            spacing={40}
+            initialSpacing={20}
+            color='#007AFF'
+            thickness={2}
+            startFillColor='rgba(0, 122, 255, 0.3)'
+            endFillColor='rgba(0, 122, 255, 0.01)'
+            startOpacity={0.9}
+            endOpacity={0.2}
+            backgroundColor='white'
+            yAxisLabelWidth={40}
+            yAxisTextStyle={{ color: '#666' }}
+            xAxisLabelTextStyle={{ color: '#666' }}
+            hideRules
+            yAxisThickness={1}
+            xAxisThickness={1}
+            yAxisTextNumberOfLines={1}
+            yAxisLabelPrefix=''
+            yAxisLabelSuffix='%'
+            curved
+            showDataPointOnFocus
+            maxValue={100}
+            noOfSections={5}
+          />
+        </View>
+
+        {/* Monthly Breakdown */}
+        <View style={styles.breakdownContainer}>
+          <Text style={styles.breakdownTitle}>Monthly Breakdown</Text>
+          {stats.monthlyStats.map((monthStat, index) => (
+            <View key={index} style={styles.monthRow}>
+              <Text style={styles.monthName}>{monthStat.month}</Text>
+              <View style={styles.monthStats}>
+                <Text style={styles.monthCompletion}>
+                  {monthStat.completionRate}% completed
+                </Text>
+                <Text style={styles.monthDays}>
+                  {monthStat.completedDays}/{monthStat.totalDays} days
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

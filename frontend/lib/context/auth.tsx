@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string
   ): Promise<Record<string, any>> => {
-    if (!supabase) return { error: 'PocketBase not initialized' };
+    if (!supabase) return { error: 'Supabase not initialized' };
 
     try {
       const { data: session, error: sessionError } =

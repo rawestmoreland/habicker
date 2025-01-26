@@ -8,7 +8,7 @@ import { Button, TextInput, Text } from 'react-native-paper';
 import { z } from 'zod';
 
 export default function CreateHabit() {
-  const { mutate: createHabit, data: newHabit, isLoading } = useCreateHabit();
+  const { mutate: createHabit, data: newHabit, isPending } = useCreateHabit();
 
   const formSchema = z.object({
     name: z
@@ -86,8 +86,8 @@ export default function CreateHabit() {
           </Text>
         )}
         <Button
-          disabled={isLoading}
-          icon={isLoading ? 'loading' : 'plus'}
+          disabled={isPending}
+          icon={isPending ? 'loading' : 'plus'}
           mode='contained-tonal'
           onPress={form.handleSubmit(onSubmit)}
         >

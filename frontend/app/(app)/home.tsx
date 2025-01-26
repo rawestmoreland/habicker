@@ -2,6 +2,7 @@ import {
   Dimensions,
   FlatList,
   Pressable,
+  SafeAreaView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -169,276 +170,333 @@ export default function Home() {
   }
 
   return (
-    <View style={styles.container}>
-      <View
-        style={{
-          width: '100%',
-          marginBottom: 16,
-          justifyContent: 'space-between',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 8,
-          paddingHorizontal: 20,
-          paddingBottom: 8,
-          marginTop: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: '#545454',
-        }}
-      >
-        <IconButton
-          mode='contained'
-          icon='arrow-left'
-          onPress={decrementMonth}
-        />
-        <Text variant='headlineLarge'>{thisMonth}</Text>
-        <IconButton
-          disabled={selectedDate.getMonth() === new Date().getMonth()}
-          mode='contained'
-          icon='arrow-right'
-          onPress={incrementMonth}
-        />
-      </View>
-      <FlatList
-        style={{ width: '100%' }}
-        showsVerticalScrollIndicator={false}
-        data={[
-          ...habits.data.map((habit) => ({
-            key: habit.id,
-            name: habit.name,
-            description: habit.description,
-            ...habit,
-          })),
-          { key: 'spacer', name: 'spacer', description: 'spacer' },
-        ]}
-        renderItem={({ item, index }) => {
-          const habitTrackings = item.habit_trackings;
-
-          const completedDates = habitTrackings?.map(
-            (tracking: { completed_on_date: string }) => {
-              if (!tracking.completed_on_date) return null;
-
-              return format(new Date(tracking.completed_on_date), 'yyyy-MM-dd');
-            }
-          );
-
-          if (item.key === 'spacer') {
-            return <View style={{ height: SCREEN_HEIGHT * 0.1 }} />;
-          }
-
-          return (
-            <View
-              style={{
-                marginVertical: index > 0 ? 24 : 0,
-                paddingHorizontal: 24,
-              }}
-            >
-              <View
-                style={{
-                  justifyContent: 'space-between',
-                  flexDirection: 'row',
-                }}
-              >
-                <View>
-                  <Text variant='headlineMedium'>{item.name}</Text>
-                  <Text variant='bodyMedium'>{item.description}</Text>
-                </View>
-                <View style={{ flexDirection: 'row' }}>
-                  <IconButton
-                    icon='pencil'
-                    onPress={() => setHabitToEdit(item.id)}
-                  />
-                  <IconButton
-                    onPress={() => router.navigate(`/habit/${item.id}`)}
-                    icon='chart-line'
-                  />
-                </View>
-              </View>
-              <Calendar
-                initialDate={initialDate}
-                maxDate={format(new Date(), 'yyyy-MM-dd')}
-                theme={{
-                  // @ts-ignore
-                  'stylesheet.calendar.header': {
-                    header: { height: 0, opacity: 0 },
-                  },
-                  calendarBackground: 'transparent',
-                  textDisabledColor: '#ccc',
-                }}
-                hideExtraDays
-                hideArrows
-                disableArrowRight
-                disableArrowLeft
-                markingType='custom'
-                markedDates={{
-                  ...completedDates?.reduce((acc: any, date: any) => {
-                    if (!date) return acc;
-
-                    return {
-                      ...acc,
-                      [date]: {
-                        selected: true,
-                        customStyles: {
-                          container: {
-                            backgroundColor: '#4CAF50',
-                          },
-                          text: {
-                            color: '#000',
-                            fontWeight: 'semibold',
-                          },
-                        },
-                      },
-                    };
-                  }, {}),
-                }}
-                onDayLongPress={(day: any) => {
-                  if (
-                    isCreating ||
-                    isDeleting ||
-                    isUpdating ||
-                    isUpdatingHabitTracking
-                  )
-                    return;
-
-                  if (completedDates?.includes(day.dateString)) {
-                    const habitTracking = habitTrackings?.find(
-                      (tracking: { completed_on_date: string }) =>
-                        format(
-                          new Date(tracking.completed_on_date),
-                          'yyyy-MM-dd'
-                        ) === day.dateString
-                    );
-
-                    if (!habitTracking) return;
-
-                    setHabitToAddNote(habitTracking.id);
-                  }
-                }}
-                onDayPress={(day: {
-                  timestamp: number;
-                  dateString: string;
-                }) => {
-                  if (isCreating || isDeleting) return;
-                  if (completedDates?.includes(day.dateString)) {
-                    const habitTracking = habitTrackings?.find(
-                      (tracking: { completed_on_date: string }) =>
-                        format(
-                          new Date(tracking.completed_on_date),
-                          'yyyy-MM-dd'
-                        ) === day.dateString
-                    );
-
-                    if (habitTracking) {
-                      deleteHabitTracking(habitTracking.id);
-                    }
-                  } else {
-                    handleDayPress({ day, habit_id: item.id });
-                  }
-                }}
-              />
-            </View>
-          );
-        }}
-      />
-      <Portal>
-        <FAB.Group
-          icon={menuOpen ? 'close' : 'dots-horizontal'}
-          open={menuOpen}
-          visible
-          onStateChange={() => setMenuOpen(!menuOpen)}
-          actions={[
-            {
-              icon: 'plus',
-              label: 'Add',
-              onPress: () => router.navigate('/create-habit'),
-            },
-            {
-              icon: 'view-day-outline',
-              label: 'Day view',
-              onPress: () => router.navigate('/day'),
-            },
-            { icon: 'logout', label: 'Sign Out', onPress: signOut },
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={styles.container}>
+        <View
+          style={{
+            width: '100%',
+            marginBottom: 16,
+            justifyContent: 'space-between',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingHorizontal: 20,
+            paddingBottom: 8,
+            marginTop: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: '#545454',
+          }}
+        >
+          <IconButton
+            mode='contained'
+            icon='arrow-left'
+            onPress={decrementMonth}
+          />
+          <Text variant='headlineLarge'>{thisMonth}</Text>
+          <IconButton
+            disabled={selectedDate.getMonth() === new Date().getMonth()}
+            mode='contained'
+            icon='arrow-right'
+            onPress={incrementMonth}
+          />
+        </View>
+        <FlatList
+          style={{ width: '100%' }}
+          showsVerticalScrollIndicator={false}
+          data={[
+            ...habits.data.map((habit) => ({
+              key: habit.id,
+              name: habit.name,
+              description: habit.description,
+              ...habit,
+            })),
+            { key: 'spacer', name: 'spacer', description: 'spacer' },
           ]}
-        />
-      </Portal>
-      <Modal
-        avoidKeyboard
-        isVisible={Boolean(habitToEdit)}
-        onBackdropPress={() => setHabitToEdit(undefined)}
-      >
-        <View style={styles.container}>
-          <View style={styles.modalView}>
-            <View style={{ gap: 8, width: '100%' }}>
-              <Text variant='headlineMedium'>Edit habit</Text>
-              <Controller
-                control={updateForm.control}
-                name='name'
-                render={({ field }) => (
-                  <TextInput
-                    label='Name'
-                    mode='outlined'
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    autoCapitalize='none'
-                  />
-                )}
-              />
-              {updateForm.formState.errors.name && (
-                <Text variant='labelSmall' style={{ color: 'red' }}>
-                  {updateForm.formState.errors.name.message}
-                </Text>
-              )}
-              <Controller
-                control={updateForm.control}
-                name='description'
-                render={({ field }) => (
-                  <TextInput
-                    mode='outlined'
-                    label='Description'
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    autoCapitalize='none'
-                    multiline
-                  />
-                )}
-              />
-              {updateForm.formState.errors.description && (
-                <Text variant='labelSmall' style={{ color: 'red' }}>
-                  {updateForm.formState.errors.description.message}
-                </Text>
-              )}
+          renderItem={({ item, index }) => {
+            const habitTrackings = item.habit_trackings;
+
+            const completedDates = habitTrackings?.map(
+              (tracking: { completed_on_date: string }) => {
+                if (!tracking.completed_on_date) return null;
+
+                return format(
+                  new Date(tracking.completed_on_date),
+                  'yyyy-MM-dd'
+                );
+              }
+            );
+
+            if (item.key === 'spacer') {
+              return <View style={{ height: SCREEN_HEIGHT * 0.1 }} />;
+            }
+
+            return (
               <View
                 style={{
-                  justifyContent: 'space-between',
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  marginVertical: index > 0 ? 24 : 0,
+                  paddingHorizontal: 24,
                 }}
               >
-                <Pressable
-                  disabled={isDeleting}
-                  onPress={() => {
-                    deleteHabit(habitToEdit as string);
-                    setHabitToEdit(undefined);
-                  }}
-                >
-                  <Icon size={30} source='delete-outline' color='red' />
-                </Pressable>
                 <View
                   style={{
+                    justifyContent: 'space-between',
                     flexDirection: 'row',
                   }}
                 >
-                  <Button
-                    disabled={isUpdating}
+                  <View>
+                    <Text variant='headlineMedium'>{item.name}</Text>
+                    <Text variant='bodyMedium'>{item.description}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row' }}>
+                    <IconButton
+                      icon='pencil'
+                      onPress={() => setHabitToEdit(item.id)}
+                    />
+                    <IconButton
+                      onPress={() => router.navigate(`/habit/${item.id}`)}
+                      icon='chart-line'
+                    />
+                  </View>
+                </View>
+                <Calendar
+                  initialDate={initialDate}
+                  minDate={format(new Date(item.created_at), 'yyyy-MM-dd')}
+                  maxDate={format(new Date(), 'yyyy-MM-dd')}
+                  theme={{
+                    // @ts-ignore
+                    'stylesheet.calendar.header': {
+                      header: { height: 0, opacity: 0 },
+                    },
+                    calendarBackground: 'transparent',
+                    textDisabledColor: '#ccc',
+                  }}
+                  hideExtraDays
+                  hideArrows
+                  disableArrowRight
+                  disableArrowLeft
+                  markingType='custom'
+                  markedDates={{
+                    ...completedDates?.reduce((acc: any, date: any) => {
+                      if (!date) return acc;
+
+                      return {
+                        ...acc,
+                        [date]: {
+                          selected: true,
+                          customStyles: {
+                            container: {
+                              backgroundColor: '#4CAF50',
+                            },
+                            text: {
+                              color: '#000',
+                              fontWeight: 'semibold',
+                            },
+                          },
+                        },
+                      };
+                    }, {}),
+                  }}
+                  onDayLongPress={(day: any) => {
+                    if (
+                      isCreating ||
+                      isDeleting ||
+                      isUpdating ||
+                      isUpdatingHabitTracking
+                    )
+                      return;
+
+                    if (completedDates?.includes(day.dateString)) {
+                      const habitTracking = habitTrackings?.find(
+                        (tracking: { completed_on_date: string }) =>
+                          format(
+                            new Date(tracking.completed_on_date),
+                            'yyyy-MM-dd'
+                          ) === day.dateString
+                      );
+
+                      if (!habitTracking) return;
+
+                      setHabitToAddNote(habitTracking.id);
+                    }
+                  }}
+                  onDayPress={(day: {
+                    timestamp: number;
+                    dateString: string;
+                  }) => {
+                    if (isCreating || isDeleting) return;
+                    if (completedDates?.includes(day.dateString)) {
+                      const habitTracking = habitTrackings?.find(
+                        (tracking: { completed_on_date: string }) =>
+                          format(
+                            new Date(tracking.completed_on_date),
+                            'yyyy-MM-dd'
+                          ) === day.dateString
+                      );
+
+                      if (habitTracking) {
+                        deleteHabitTracking(habitTracking.id);
+                      }
+                    } else {
+                      handleDayPress({ day, habit_id: item.id });
+                    }
+                  }}
+                />
+              </View>
+            );
+          }}
+        />
+        <Portal>
+          <FAB.Group
+            icon={menuOpen ? 'close' : 'dots-horizontal'}
+            open={menuOpen}
+            visible
+            onStateChange={() => setMenuOpen(!menuOpen)}
+            actions={[
+              {
+                icon: 'plus',
+                label: 'Add',
+                onPress: () => router.navigate('/create-habit'),
+              },
+              {
+                icon: 'view-day-outline',
+                label: 'Day view',
+                onPress: () => router.navigate('/day'),
+              },
+              { icon: 'logout', label: 'Sign Out', onPress: signOut },
+            ]}
+          />
+        </Portal>
+        <Modal
+          avoidKeyboard
+          isVisible={Boolean(habitToEdit)}
+          onBackdropPress={() => setHabitToEdit(undefined)}
+        >
+          <View style={styles.container}>
+            <View style={styles.modalView}>
+              <View style={{ gap: 8, width: '100%' }}>
+                <Text variant='headlineMedium'>Edit habit</Text>
+                <Controller
+                  control={updateForm.control}
+                  name='name'
+                  render={({ field }) => (
+                    <TextInput
+                      label='Name'
+                      mode='outlined'
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      autoCapitalize='none'
+                    />
+                  )}
+                />
+                {updateForm.formState.errors.name && (
+                  <Text variant='labelSmall' style={{ color: 'red' }}>
+                    {updateForm.formState.errors.name.message}
+                  </Text>
+                )}
+                <Controller
+                  control={updateForm.control}
+                  name='description'
+                  render={({ field }) => (
+                    <TextInput
+                      mode='outlined'
+                      label='Description'
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      autoCapitalize='none'
+                      multiline
+                    />
+                  )}
+                />
+                {updateForm.formState.errors.description && (
+                  <Text variant='labelSmall' style={{ color: 'red' }}>
+                    {updateForm.formState.errors.description.message}
+                  </Text>
+                )}
+                <View
+                  style={{
+                    justifyContent: 'space-between',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Pressable
+                    disabled={isDeleting}
                     onPress={() => {
-                      updateForm.reset();
+                      deleteHabit(habitToEdit as string);
                       setHabitToEdit(undefined);
                     }}
+                  >
+                    <Icon size={30} source='delete-outline' color='red' />
+                  </Pressable>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                    }}
+                  >
+                    <Button
+                      disabled={isUpdating}
+                      onPress={() => {
+                        updateForm.reset();
+                        setHabitToEdit(undefined);
+                      }}
+                    >
+                      Nevermind
+                    </Button>
+                    <Button
+                      disabled={isUpdating}
+                      onPress={updateForm.handleSubmit(handleHabitUpdate)}
+                    >
+                      Update
+                    </Button>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        <Modal
+          avoidKeyboard
+          isVisible={Boolean(habitToAddNote)}
+          onBackdropPress={() => setHabitToAddNote(undefined)}
+        >
+          <View style={styles.container}>
+            <View style={styles.modalView}>
+              <View style={{ gap: 8, width: '100%' }}>
+                <Text variant='headlineMedium'>Add a note</Text>
+                <Controller
+                  control={noteForm.control}
+                  name='note'
+                  render={({ field }) => (
+                    <TextInput
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      autoCapitalize='none'
+                      multiline
+                    />
+                  )}
+                />
+                {noteForm.formState.errors.note && (
+                  <Text variant='labelSmall' style={{ color: 'red' }}>
+                    {noteForm.formState.errors.note.message}
+                  </Text>
+                )}
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    gap: 8,
+                    justifyContent: 'flex-end',
+                  }}
+                >
+                  <Button
+                    disabled={isUpdatingHabitTracking}
+                    onPress={() => setHabitToAddNote(undefined)}
                   >
                     Nevermind
                   </Button>
                   <Button
-                    disabled={isUpdating}
-                    onPress={updateForm.handleSubmit(handleHabitUpdate)}
+                    disabled={isUpdatingHabitTracking}
+                    onPress={noteForm.handleSubmit(handleHabitTrackingUpdate)}
                   >
                     Update
                   </Button>
@@ -446,60 +504,9 @@ export default function Home() {
               </View>
             </View>
           </View>
-        </View>
-      </Modal>
-      <Modal
-        avoidKeyboard
-        isVisible={Boolean(habitToAddNote)}
-        onBackdropPress={() => setHabitToAddNote(undefined)}
-      >
-        <View style={styles.container}>
-          <View style={styles.modalView}>
-            <View style={{ gap: 8, width: '100%' }}>
-              <Text variant='headlineMedium'>Add a note</Text>
-              <Controller
-                control={noteForm.control}
-                name='note'
-                render={({ field }) => (
-                  <TextInput
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    autoCapitalize='none'
-                    multiline
-                  />
-                )}
-              />
-              {noteForm.formState.errors.note && (
-                <Text variant='labelSmall' style={{ color: 'red' }}>
-                  {noteForm.formState.errors.note.message}
-                </Text>
-              )}
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  gap: 8,
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <Button
-                  disabled={isUpdatingHabitTracking}
-                  onPress={() => setHabitToAddNote(undefined)}
-                >
-                  Nevermind
-                </Button>
-                <Button
-                  disabled={isUpdatingHabitTracking}
-                  onPress={noteForm.handleSubmit(handleHabitTrackingUpdate)}
-                >
-                  Update
-                </Button>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
