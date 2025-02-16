@@ -1,9 +1,9 @@
+import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/lib/context/auth';
 import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useSupabase } from '@/lib/context/supabase';
-import { Session } from '@supabase/supabase-js';
 
 export default function Index() {
   const { isInitialized, session } = useAuth();

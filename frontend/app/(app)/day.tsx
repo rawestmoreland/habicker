@@ -23,9 +23,6 @@ import {
 import { useMemo } from 'react';
 import { useIsMutating } from '@tanstack/react-query';
 import { createCompletionDate } from '@/lib/utils/dates';
-
-const windowWidth = Dimensions.get('window').width - 40;
-
 const DayView = () => {
   const { data: habits, isPending: habitsLoading } = useGetUserHabits();
   const { mutate: createHabitTracking, isPending: isCreatingTracking } =

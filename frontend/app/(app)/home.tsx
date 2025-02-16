@@ -25,7 +25,7 @@ import { addMonths, format } from 'date-fns';
 import { useCreateHabitTracking } from '@/lib/hooks/CREATE/useCreateHabitTracking';
 import { useGetUserHabits } from '@/lib/hooks/GET/useGetUserHabits';
 import { useDeleteHabitTracking } from '@/lib/hooks/DELETE/useDeleteHabitTracking';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { z } from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,6 +38,8 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function Home() {
   const { signOut } = useAuth();
+
+  const pathname = usePathname();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -355,12 +357,21 @@ export default function Home() {
               {
                 icon: 'plus',
                 label: 'Add',
-                onPress: () => router.navigate('/create-habit'),
+                onPress: () => router.replace('/create-habit'),
               },
               {
                 icon: 'view-day-outline',
-                label: 'Day view',
-                onPress: () => router.navigate('/day'),
+                label:
+                  pathname === '/day' || pathname.startsWith('/habit')
+                    ? 'Month view'
+                    : 'Day view',
+                onPress: () => {
+                  if (pathname === '/day' || pathname.startsWith('/habit')) {
+                    router.replace('/home');
+                  } else {
+                    router.navigate('/day');
+                  }
+                },
               },
               { icon: 'logout', label: 'Sign Out', onPress: signOut },
             ]}

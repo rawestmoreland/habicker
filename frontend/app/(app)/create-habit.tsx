@@ -93,6 +93,9 @@ export default function CreateHabit() {
         >
           Add
         </Button>
+        <Button mode='outlined' onPress={() => router.replace('/home')}>
+          Cancel
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );

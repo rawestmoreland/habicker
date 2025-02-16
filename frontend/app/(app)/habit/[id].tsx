@@ -35,7 +35,9 @@ export default function HabitDetailScreen() {
     if (!trackings?.data) return null;
 
     const today = new Date();
-    const habitStartDate = parseISO(habit?.data?.created_at);
+    const habitStartDate = habit?.data?.created_at
+      ? parseISO(habit?.data?.created_at)
+      : today;
     const sixMonthsAgo = subMonths(today, 5);
 
     // For the graph, we'll show last 6 months
