@@ -55,10 +55,23 @@ export default function HabitDetailScreen() {
 
     // Calculate monthly stats for the graph
     const monthlyStats = graphMonths.map((month) => {
-      const daysInMonth = eachDayOfInterval({
-        start: startOfMonth(month),
-        end: endOfMonth(month),
-      });
+      const isCurrentMonth =
+        month.getFullYear() === today.getFullYear() &&
+        month.getMonth() === today.getMonth();
+
+      let daysInMonth;
+      if (isCurrentMonth) {
+        // Only include days up to today
+        daysInMonth = eachDayOfInterval({
+          start: startOfMonth(month),
+          end: today,
+        });
+      } else {
+        daysInMonth = eachDayOfInterval({
+          start: startOfMonth(month),
+          end: endOfMonth(month),
+        });
+      }
 
       const completedDays = daysInMonth.filter((day) =>
         trackings.data.some((tracking) =>

@@ -2,7 +2,7 @@
   "expo": {
     "name": "habicker",
     "slug": "habicker-e7rkirlder-ebvzhscaow",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "com.habicker",
@@ -48,7 +48,7 @@
       }
     },
     "owner": "rawestmoreland",
-    "runtimeVersion": "0.0.1",
+    "runtimeVersion": "appVersion",
     "updates": {
       "url": "https://u.expo.dev/91242625-db95-4757-83fb-c8ba0b34335d"
     }
