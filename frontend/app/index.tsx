@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/lib/context/auth';
-import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useRouter, useSegments } from 'expo-router';
+import { useEffect } from 'react';
 import { useSupabase } from '@/lib/context/supabase';
 
 export default function Index() {
@@ -11,10 +11,9 @@ export default function Index() {
 
   const router = useRouter();
   const segments = useSegments();
-  const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    if (!isInitialized || !navigationState?.key) return;
+    if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
@@ -30,11 +29,11 @@ export default function Index() {
       // go to tabs root.
       router.replace('/(app)/home');
     }
-  }, [segments, navigationState?.key, isInitialized, session]);
+  }, [segments, isInitialized, session]);
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      {!navigationState?.key ? <ActivityIndicator /> : <></>}
-    </View>
+    <View
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+    ></View>
   );
 }

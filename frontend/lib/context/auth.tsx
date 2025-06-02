@@ -2,7 +2,6 @@ import { useSegments, useRouter, useNavigationContainerRef } from 'expo-router';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useSupabase } from './supabase';
 import { Session } from '@supabase/supabase-js';
-import { set } from 'lodash';
 
 const AuthContext = createContext({
   signIn: async (
