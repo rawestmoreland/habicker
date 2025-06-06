@@ -1,10 +1,9 @@
 import {
   View,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { TextInput, Button, Portal, Dialog, Text } from 'react-native-paper';
 import { useRouter } from 'expo-router';
@@ -13,6 +12,10 @@ import { z } from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  KeyboardAwareScrollView,
+} from 'react-native-keyboard-controller';
 
 export default function CreateAccount() {
   const { createAccount } = useAuth();
@@ -57,47 +60,48 @@ export default function CreateAccount() {
 
   return (
     <KeyboardAvoidingView
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.formContainer}>
-          <Controller
-            control={form.control}
-            name='email'
-            render={({ field }) => (
-              <TextInput
-                autoCapitalize='none'
-                value={field.value}
-                onChangeText={field.onChange}
-                placeholder='Email'
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name='password'
-            render={({ field }) => (
-              <TextInput
-                autoCapitalize='none'
-                value={field.value}
-                onChangeText={field.onChange}
-                placeholder='Password'
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name='passwordConfirm'
-            render={({ field }) => (
-              <TextInput
-                autoCapitalize='none'
-                value={field.value}
-                onChangeText={field.onChange}
-                placeholder='Password Confirm'
-              />
-            )}
-          />
+      <View style={styles.formContainer}>
+        <Controller
+          control={form.control}
+          name='email'
+          render={({ field }) => (
+            <TextInput
+              autoCapitalize='none'
+              value={field.value}
+              onChangeText={field.onChange}
+              placeholder='Email'
+            />
+          )}
+        />
+        <Controller
+          control={form.control}
+          name='password'
+          render={({ field }) => (
+            <TextInput
+              autoCapitalize='none'
+              value={field.value}
+              onChangeText={field.onChange}
+              placeholder='Password'
+            />
+          )}
+        />
+        <Controller
+          control={form.control}
+          name='passwordConfirm'
+          render={({ field }) => (
+            <TextInput
+              autoCapitalize='none'
+              value={field.value}
+              onChangeText={field.onChange}
+              placeholder='Password Confirm'
+            />
+          )}
+        />
+        <View style={styles.buttonContainer}>
           <Button mode='contained' onPress={form.handleSubmit(onSubmit)}>
             Sign up
           </Button>
@@ -110,7 +114,7 @@ export default function CreateAccount() {
             Cancel
           </Button>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
       <Portal>
         <Dialog
           visible={Boolean(errorMessage)}
@@ -151,12 +155,13 @@ export default function CreateAccount() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    maxHeight: 500,
   },
   formContainer: {
-    gap: 16,
-    width: '80%',
+    flex: 1,
+    marginTop: 80,
+    padding: 24,
+    justifyContent: 'space-between',
   },
   label: {
     marginBottom: 4,
@@ -170,5 +175,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     marginBottom: 8,
+  },
+  buttonContainer: {
+    gap: 8,
   },
 });

@@ -109,11 +109,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
         });
 
-      if (!session || sessionError)
+      if (!session || sessionError) {
+        if (sessionError?.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid login credentials');
+        }
         throw new Error('No response from authWithPassword');
+      }
       return session;
     } catch (e: any) {
-      return { error: e };
+      throw new Error(e.message);
     }
   };
 

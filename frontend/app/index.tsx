@@ -1,13 +1,11 @@
 import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useAuth } from '@/lib/context/auth';
 import { useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { useSupabase } from '@/lib/context/supabase';
 
 export default function Index() {
   const { isInitialized, session } = useAuth();
-  const { supabase } = useSupabase();
 
   const router = useRouter();
   const segments = useSegments();

@@ -1,12 +1,6 @@
-import { useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native';
+import { useState } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { TextInput, Button, Portal, Dialog, Text } from 'react-native-paper';
 import {
   GoogleSignin,
@@ -80,79 +74,83 @@ export default function LogIn() {
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    await signIn(data.email, data.password);
+    try {
+      await signIn(data.email, data.password);
+    } catch (error: any) {
+      setErrorMessage(error.message);
+    }
   };
 
   return (
     <KeyboardAvoidingView
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss}>
-        <View style={styles.loginForm}>
-          {Platform.OS === 'ios' && (
-            <Button
-              mode='contained-tonal'
-              icon='apple'
-              onPress={async () => {
-                try {
-                  const credentials = await AppleAuthentication.signInAsync({
-                    requestedScopes: [
-                      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-                      AppleAuthentication.AppleAuthenticationScope.EMAIL,
-                    ],
-                  });
-                  if (credentials.identityToken) {
-                    await signInWithIdToken({
-                      provider: 'apple',
-                      token: credentials.identityToken,
-                    });
-                  }
-                } catch (error: any) {
-                  console.error(error);
-                }
-              }}
-            >
-              Sign in with Apple
-            </Button>
-          )}
+      <View style={styles.loginForm}>
+        {Platform.OS === 'ios' && (
           <Button
             mode='contained-tonal'
-            icon='google'
+            icon='apple'
             onPress={async () => {
               try {
-                await GoogleSignin.hasPlayServices();
-                const userInfo = await GoogleSignin.signIn();
-                if (userInfo.idToken) {
+                const credentials = await AppleAuthentication.signInAsync({
+                  requestedScopes: [
+                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                  ],
+                });
+                if (credentials.identityToken) {
                   await signInWithIdToken({
-                    provider: 'google',
-                    token: userInfo.idToken,
+                    provider: 'apple',
+                    token: credentials.identityToken,
                   });
-                } else throw new Error('No ID Token present');
-              } catch (error: any) {
-                if (isErrorWithCode(error)) {
-                  switch (error.code) {
-                    case statusCodes.SIGN_IN_CANCELLED:
-                      // user cancelled the login flow
-                      break;
-                    case statusCodes.IN_PROGRESS:
-                      // operation (eg. sign in) already in progress
-                      break;
-                    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-                      // play services not available or outdated
-                      break;
-                    default:
-                    // some other error happened
-                  }
-                } else {
-                  // an error that's not related to google sign in occurred
                 }
+              } catch (error: any) {
+                console.error(error);
               }
             }}
           >
-            Sign in with Google
+            Sign in with Apple
           </Button>
-          {/* <Button
+        )}
+        <Button
+          mode='contained-tonal'
+          icon='google'
+          onPress={async () => {
+            try {
+              await GoogleSignin.hasPlayServices();
+              const userInfo = await GoogleSignin.signIn();
+              if (userInfo.idToken) {
+                await signInWithIdToken({
+                  provider: 'google',
+                  token: userInfo.idToken,
+                });
+              } else throw new Error('No ID Token present');
+            } catch (error: any) {
+              if (isErrorWithCode(error)) {
+                switch (error.code) {
+                  case statusCodes.SIGN_IN_CANCELLED:
+                    // user cancelled the login flow
+                    break;
+                  case statusCodes.IN_PROGRESS:
+                    // operation (eg. sign in) already in progress
+                    break;
+                  case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+                    // play services not available or outdated
+                    break;
+                  default:
+                  // some other error happened
+                }
+              } else {
+                // an error that's not related to google sign in occurred
+              }
+            }
+          }}
+        >
+          Sign in with Google
+        </Button>
+        {/* <Button
             mode='contained-tonal'
             icon='github'
             onPress={async () => {
@@ -161,54 +159,53 @@ export default function LogIn() {
           >
             Sign in with Github
           </Button> */}
-          <Text
-            variant='bodyLarge'
-            style={{ textAlign: 'center', fontWeight: 600 }}
-          >
-            - OR -
-          </Text>
-          <Controller
-            control={form.control}
-            name='email'
-            render={({ field }) => (
-              <TextInput
-                autoCapitalize='none'
-                value={field.value}
-                onChangeText={field.onChange}
-                placeholder='Email'
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name='password'
-            render={({ field }) => (
-              <TextInput
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                    onPress={() => setShowPassword(!showPassword)}
-                  />
-                }
-                autoCapitalize='none'
-                value={field.value}
-                onChangeText={field.onChange}
-                placeholder='password'
-                secureTextEntry={!showPassword}
-              />
-            )}
-          />
-          <Button mode='contained' onPress={form.handleSubmit(onSubmit)}>
-            Login
-          </Button>
-          <Button
-            mode='contained-tonal'
-            onPress={() => router.push('/create-account')}
-          >
-            Create an account
-          </Button>
-        </View>
-      </TouchableWithoutFeedback>
+        <Text
+          variant='bodyLarge'
+          style={{ textAlign: 'center', fontWeight: 600 }}
+        >
+          - OR -
+        </Text>
+        <Controller
+          control={form.control}
+          name='email'
+          render={({ field }) => (
+            <TextInput
+              autoCapitalize='none'
+              value={field.value}
+              onChangeText={field.onChange}
+              placeholder='Email'
+            />
+          )}
+        />
+        <Controller
+          control={form.control}
+          name='password'
+          render={({ field }) => (
+            <TextInput
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+              autoCapitalize='none'
+              value={field.value}
+              onChangeText={field.onChange}
+              placeholder='password'
+              secureTextEntry={!showPassword}
+            />
+          )}
+        />
+        <Button mode='contained' onPress={form.handleSubmit(onSubmit)}>
+          Login
+        </Button>
+        <Button
+          mode='contained-tonal'
+          onPress={() => router.push('/create-account')}
+        >
+          Create an account
+        </Button>
+      </View>
       <Portal>
         <Dialog
           visible={Boolean(errorMessage)}

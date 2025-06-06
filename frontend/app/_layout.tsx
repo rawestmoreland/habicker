@@ -10,6 +10,7 @@ import React, { useEffect } from 'react';
 import { AuthProvider } from '@/lib/context/auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SupabaseProvider } from '@/lib/context/supabase';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 const queryClient = new QueryClient();
 
@@ -64,19 +65,25 @@ function RootLayoutNav() {
 
   return (
     <SupabaseProvider>
-      <QueryClientProvider client={queryClient}>
-        <PaperProvider theme={theme}>
-          <AuthProvider>
-            <Stack>
-              <Stack.Screen name='(app)' options={{ headerShown: false }} />
-              <Stack.Screen
-                name='(auth)/login'
-                options={{ headerShown: false }}
-              />
-            </Stack>
-          </AuthProvider>
-        </PaperProvider>
-      </QueryClientProvider>
+      <KeyboardProvider>
+        <QueryClientProvider client={queryClient}>
+          <PaperProvider theme={theme}>
+            <AuthProvider>
+              <Stack>
+                <Stack.Screen name='(app)' options={{ headerShown: false }} />
+                <Stack.Screen
+                  name='(auth)/login'
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name='(auth)/create-account'
+                  options={{ headerShown: false }}
+                />
+              </Stack>
+            </AuthProvider>
+          </PaperProvider>
+        </QueryClientProvider>
+      </KeyboardProvider>
     </SupabaseProvider>
   );
 }

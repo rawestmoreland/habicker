@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
+  Animated,
 } from 'react-native';
 import Modal from 'react-native-modal';
 
@@ -18,8 +19,10 @@ import {
   Portal,
   Text,
   TextInput,
+  Surface,
+  useTheme,
 } from 'react-native-paper';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Calendar } from 'react-native-calendars';
 import { addMonths, format } from 'date-fns';
 import { useCreateHabitTracking } from '@/lib/hooks/CREATE/useCreateHabitTracking';
@@ -36,10 +39,243 @@ import { createCompletionDate } from '@/lib/utils/dates';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
+interface HabitCardProps {
+  item: {
+    id: string;
+    name: string;
+    description: string;
+    created_at: string;
+    habit_trackings: Array<{
+      id: string;
+      completed_on_date: string;
+    }>;
+  };
+  index: number;
+  onEdit: (id: string) => void;
+  onViewStats: (id: string) => void;
+  onDayPress: (params: {
+    day: { dateString: string };
+    habit_id: string;
+    tracking_id?: string;
+  }) => void;
+  onDayLongPress: (id: string) => void;
+  isCreating: boolean;
+  isDeleting: boolean;
+  isUpdating: boolean;
+  isUpdatingHabitTracking: boolean;
+  selectedDate: Date;
+}
+
+const HabitCard = ({
+  item,
+  index,
+  onEdit,
+  onViewStats,
+  onDayPress,
+  onDayLongPress,
+  isCreating,
+  isDeleting,
+  isUpdating,
+  isUpdatingHabitTracking,
+  selectedDate,
+}: HabitCardProps) => {
+  const theme = useTheme();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+        delay: index * 100,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+        delay: index * 100,
+      }),
+    ]).start();
+  }, []);
+
+  const habitTrackings = item.habit_trackings;
+  const completedDates = habitTrackings?.map(
+    (tracking: { completed_on_date: string }) => {
+      if (!tracking.completed_on_date) return null;
+      return format(new Date(tracking.completed_on_date), 'yyyy-MM-dd');
+    }
+  );
+
+  return (
+    <Animated.View
+      style={[
+        styles.habitCard,
+        {
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
+    >
+      <Surface style={styles.habitCardSurface} elevation={2}>
+        <View style={styles.habitHeader}>
+          <View>
+            <Text variant='headlineMedium' style={styles.habitTitle}>
+              {item.name}
+            </Text>
+            <Text variant='bodyMedium' style={styles.habitDescription}>
+              {item.description}
+            </Text>
+          </View>
+          <View style={styles.habitActions}>
+            <IconButton
+              icon='pencil'
+              onPress={() => onEdit(item.id)}
+              mode='contained-tonal'
+              size={12}
+            />
+            <IconButton
+              onPress={() => onViewStats(item.id)}
+              icon='chart-line'
+              mode='contained-tonal'
+              size={12}
+            />
+          </View>
+        </View>
+        <Calendar
+          initialDate={format(selectedDate, 'yyyy-MM-dd')}
+          minDate={format(new Date(item.created_at), 'yyyy-MM-dd')}
+          maxDate={format(new Date(), 'yyyy-MM-dd')}
+          current={format(selectedDate, 'yyyy-MM-dd')}
+          theme={{
+            // @ts-ignore - Calendar theme type is not properly typed
+            'stylesheet.calendar.header': {
+              header: { height: 0, opacity: 0 },
+            },
+            calendarBackground: 'transparent',
+            textDisabledColor: '#ccc',
+            todayTextColor: theme.colors.primary,
+            selectedDayBackgroundColor: theme.colors.primary,
+            selectedDayTextColor: '#ffffff',
+            dotColor: theme.colors.primary,
+            selectedDotColor: '#ffffff',
+          }}
+          hideExtraDays
+          hideArrows
+          disableArrowRight
+          disableArrowLeft
+          markingType='custom'
+          markedDates={{
+            ...completedDates?.reduce((acc: any, date: any) => {
+              if (!date) return acc;
+              return {
+                ...acc,
+                [date]: {
+                  selected: true,
+                  customStyles: {
+                    container: {
+                      backgroundColor: theme.colors.primary,
+                      borderRadius: 8,
+                    },
+                    text: {
+                      color: '#ffffff',
+                      fontWeight: 'bold',
+                    },
+                  },
+                },
+              };
+            }, {}),
+          }}
+          onDayLongPress={(day: any) => {
+            if (
+              isCreating ||
+              isDeleting ||
+              isUpdating ||
+              isUpdatingHabitTracking
+            )
+              return;
+            if (completedDates?.includes(day.dateString)) {
+              const habitTracking = habitTrackings?.find(
+                (tracking: { completed_on_date: string }) =>
+                  format(new Date(tracking.completed_on_date), 'yyyy-MM-dd') ===
+                  day.dateString
+              );
+              if (!habitTracking) return;
+              onDayLongPress(habitTracking.id);
+            }
+          }}
+          onDayPress={(day: { timestamp: number; dateString: string }) => {
+            if (isCreating || isDeleting) return;
+            if (completedDates?.includes(day.dateString)) {
+              const habitTracking = habitTrackings?.find(
+                (tracking: { completed_on_date: string }) =>
+                  format(new Date(tracking.completed_on_date), 'yyyy-MM-dd') ===
+                  day.dateString
+              );
+              if (habitTracking) {
+                onDayPress({
+                  day,
+                  habit_id: item.id,
+                  tracking_id: habitTracking.id,
+                });
+              }
+            } else {
+              onDayPress({ day, habit_id: item.id });
+            }
+          }}
+        />
+      </Surface>
+    </Animated.View>
+  );
+};
+
+const LoadingSkeleton = () => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <View style={styles.skeletonContainer}>
+      {[1, 2, 3].map((i) => (
+        <Animated.View
+          key={i}
+          style={[
+            styles.skeletonItem,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: 0.95 }],
+            },
+          ]}
+        >
+          <ActivityIndicator size='large' />
+        </Animated.View>
+      ))}
+    </View>
+  );
+};
+
 export default function Home() {
   const { signOut } = useAuth();
-
+  const theme = useTheme();
   const pathname = usePathname();
+  const headerAnim = useRef(new Animated.Value(0)).current;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -63,12 +299,18 @@ export default function Home() {
   const handleDayPress = ({
     day,
     habit_id,
+    tracking_id,
   }: {
     day: { dateString: string };
     habit_id: string;
+    tracking_id?: string;
   }) => {
-    const completionDate = createCompletionDate(day.dateString);
-    createHabitTracking({ completed_on_date: completionDate, habit_id });
+    if (tracking_id) {
+      deleteHabitTracking(tracking_id);
+    } else {
+      const completionDate = createCompletionDate(day.dateString);
+      createHabitTracking({ completed_on_date: completionDate, habit_id });
+    }
   };
 
   const updateFormSchema = z.object({
@@ -163,47 +405,58 @@ export default function Home() {
     return format(selectedDate, 'yyyy-MM-dd');
   }, [selectedDate]);
 
+  useEffect(() => {
+    Animated.spring(headerAnim, {
+      toValue: 1,
+      friction: 8,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   if (habitsLoading || !habits?.data) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator />
-      </View>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
+    >
       <View style={styles.container}>
-        <View
-          style={{
-            width: '100%',
-            marginBottom: 16,
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            paddingHorizontal: 20,
-            paddingBottom: 8,
-            marginTop: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: '#545454',
-          }}
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: headerAnim,
+              transform: [
+                {
+                  translateY: headerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-20, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
         >
           <IconButton
-            mode='contained'
+            mode='contained-tonal'
             icon='arrow-left'
             onPress={decrementMonth}
           />
-          <Text variant='headlineLarge'>{thisMonth}</Text>
+          <Text variant='headlineLarge' style={styles.headerTitle}>
+            {thisMonth}
+          </Text>
           <IconButton
             disabled={selectedDate.getMonth() === new Date().getMonth()}
-            mode='contained'
+            mode='contained-tonal'
             icon='arrow-right'
             onPress={incrementMonth}
           />
-        </View>
+        </Animated.View>
+
         <FlatList
-          style={{ width: '100%' }}
+          style={styles.list}
           showsVerticalScrollIndicator={false}
           data={[
             ...habits.data.map((habit) => ({
@@ -215,306 +468,238 @@ export default function Home() {
             { key: 'spacer', name: 'spacer', description: 'spacer' },
           ]}
           renderItem={({ item, index }) => {
-            const habitTrackings = item.habit_trackings;
-
-            const completedDates = habitTrackings?.map(
-              (tracking: { completed_on_date: string }) => {
-                if (!tracking.completed_on_date) return null;
-
-                return format(
-                  new Date(tracking.completed_on_date),
-                  'yyyy-MM-dd'
-                );
-              }
-            );
-
             if (item.key === 'spacer') {
               return <View style={{ height: SCREEN_HEIGHT * 0.1 }} />;
             }
 
             return (
-              <View
-                style={{
-                  marginVertical: index > 0 ? 24 : 0,
-                  paddingHorizontal: 24,
-                }}
-              >
-                <View
-                  style={{
-                    justifyContent: 'space-between',
-                    flexDirection: 'row',
-                  }}
-                >
-                  <View>
-                    <Text variant='headlineMedium'>{item.name}</Text>
-                    <Text variant='bodyMedium'>{item.description}</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row' }}>
-                    <IconButton
-                      icon='pencil'
-                      onPress={() => setHabitToEdit(item.id)}
-                    />
-                    <IconButton
-                      onPress={() => router.navigate(`/habit/${item.id}`)}
-                      icon='chart-line'
-                    />
-                  </View>
-                </View>
-                <Calendar
-                  initialDate={initialDate}
-                  minDate={format(new Date(item.created_at), 'yyyy-MM-dd')}
-                  maxDate={format(new Date(), 'yyyy-MM-dd')}
-                  theme={{
-                    // @ts-ignore
-                    'stylesheet.calendar.header': {
-                      header: { height: 0, opacity: 0 },
-                    },
-                    calendarBackground: 'transparent',
-                    textDisabledColor: '#ccc',
-                  }}
-                  hideExtraDays
-                  hideArrows
-                  disableArrowRight
-                  disableArrowLeft
-                  markingType='custom'
-                  markedDates={{
-                    ...completedDates?.reduce((acc: any, date: any) => {
-                      if (!date) return acc;
-
-                      return {
-                        ...acc,
-                        [date]: {
-                          selected: true,
-                          customStyles: {
-                            container: {
-                              backgroundColor: '#4CAF50',
-                            },
-                            text: {
-                              color: '#000',
-                              fontWeight: 'semibold',
-                            },
-                          },
-                        },
-                      };
-                    }, {}),
-                  }}
-                  onDayLongPress={(day: any) => {
-                    if (
-                      isCreating ||
-                      isDeleting ||
-                      isUpdating ||
-                      isUpdatingHabitTracking
-                    )
-                      return;
-
-                    if (completedDates?.includes(day.dateString)) {
-                      const habitTracking = habitTrackings?.find(
-                        (tracking: { completed_on_date: string }) =>
-                          format(
-                            new Date(tracking.completed_on_date),
-                            'yyyy-MM-dd'
-                          ) === day.dateString
-                      );
-
-                      if (!habitTracking) return;
-
-                      setHabitToAddNote(habitTracking.id);
-                    }
-                  }}
-                  onDayPress={(day: {
-                    timestamp: number;
-                    dateString: string;
-                  }) => {
-                    if (isCreating || isDeleting) return;
-                    if (completedDates?.includes(day.dateString)) {
-                      const habitTracking = habitTrackings?.find(
-                        (tracking: { completed_on_date: string }) =>
-                          format(
-                            new Date(tracking.completed_on_date),
-                            'yyyy-MM-dd'
-                          ) === day.dateString
-                      );
-
-                      if (habitTracking) {
-                        deleteHabitTracking(habitTracking.id);
-                      }
-                    } else {
-                      handleDayPress({ day, habit_id: item.id });
-                    }
-                  }}
-                />
-              </View>
+              <HabitCard
+                item={item}
+                index={index}
+                onEdit={setHabitToEdit}
+                onViewStats={(id) => router.navigate(`/habit/${id}`)}
+                onDayPress={handleDayPress}
+                onDayLongPress={setHabitToAddNote}
+                isCreating={isCreating}
+                isDeleting={isDeleting}
+                isUpdating={isUpdating}
+                isUpdatingHabitTracking={isUpdatingHabitTracking}
+                selectedDate={selectedDate}
+              />
             );
           }}
         />
+
         <Portal>
           <FAB.Group
             icon={menuOpen ? 'close' : 'dots-horizontal'}
             open={menuOpen}
             visible
             onStateChange={() => setMenuOpen(!menuOpen)}
+            fabStyle={styles.fab}
             actions={[
               {
                 icon: 'plus',
                 label: 'Add',
                 onPress: () => router.replace('/create-habit'),
+                style: styles.fabAction,
               },
               {
-                icon: 'view-day-outline',
+                icon:
+                  pathname === '/day' || pathname.startsWith('/habit')
+                    ? 'home-outline'
+                    : 'view-day-outline',
                 label:
                   pathname === '/day' || pathname.startsWith('/habit')
-                    ? 'Month view'
+                    ? 'Home'
                     : 'Day view',
                 onPress: () => {
                   if (pathname === '/day' || pathname.startsWith('/habit')) {
-                    router.replace('/home');
+                    router.back();
                   } else {
                     router.navigate('/day');
                   }
                 },
+                style: styles.fabAction,
               },
-              { icon: 'logout', label: 'Sign Out', onPress: signOut },
+              {
+                icon: 'logout',
+                label: 'Sign Out',
+                onPress: signOut,
+                style: styles.fabAction,
+              },
             ]}
           />
         </Portal>
+
         <Modal
           avoidKeyboard
           isVisible={Boolean(habitToEdit)}
           onBackdropPress={() => setHabitToEdit(undefined)}
+          backdropTransitionOutTiming={0}
+          style={styles.modal}
         >
-          <View style={styles.container}>
-            <View style={styles.modalView}>
-              <View style={{ gap: 8, width: '100%' }}>
-                <Text variant='headlineMedium'>Edit habit</Text>
-                <Controller
-                  control={updateForm.control}
-                  name='name'
-                  render={({ field }) => (
-                    <TextInput
-                      label='Name'
-                      mode='outlined'
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      autoCapitalize='none'
-                    />
-                  )}
-                />
-                {updateForm.formState.errors.name && (
-                  <Text variant='labelSmall' style={{ color: 'red' }}>
-                    {updateForm.formState.errors.name.message}
-                  </Text>
+          <Animated.View
+            style={[
+              styles.modalView,
+              {
+                opacity: headerAnim,
+                transform: [
+                  {
+                    scale: headerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.9, 1],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.modalContent}>
+              <Text variant='headlineMedium' style={styles.modalTitle}>
+                Edit habit
+              </Text>
+              <Controller
+                control={updateForm.control}
+                name='name'
+                render={({ field }) => (
+                  <TextInput
+                    label='Name'
+                    mode='outlined'
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    autoCapitalize='none'
+                    style={styles.input}
+                  />
                 )}
-                <Controller
-                  control={updateForm.control}
-                  name='description'
-                  render={({ field }) => (
-                    <TextInput
-                      mode='outlined'
-                      label='Description'
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      autoCapitalize='none'
-                      multiline
-                    />
-                  )}
-                />
-                {updateForm.formState.errors.description && (
-                  <Text variant='labelSmall' style={{ color: 'red' }}>
-                    {updateForm.formState.errors.description.message}
-                  </Text>
+              />
+              {updateForm.formState.errors.name && (
+                <Text variant='labelSmall' style={styles.errorText}>
+                  {updateForm.formState.errors.name.message}
+                </Text>
+              )}
+              <Controller
+                control={updateForm.control}
+                name='description'
+                render={({ field }) => (
+                  <TextInput
+                    mode='outlined'
+                    label='Description'
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    autoCapitalize='none'
+                    multiline
+                    style={styles.input}
+                  />
                 )}
-                <View
-                  style={{
-                    justifyContent: 'space-between',
-                    flexDirection: 'row',
-                    alignItems: 'center',
+              />
+              {updateForm.formState.errors.description && (
+                <Text variant='labelSmall' style={styles.errorText}>
+                  {updateForm.formState.errors.description.message}
+                </Text>
+              )}
+              <View style={styles.modalActions}>
+                <Pressable
+                  disabled={isDeleting}
+                  onPress={() => {
+                    deleteHabit(habitToEdit as string);
+                    setHabitToEdit(undefined);
                   }}
                 >
-                  <Pressable
-                    disabled={isDeleting}
+                  <Icon
+                    size={30}
+                    source='delete-outline'
+                    color={theme.colors.error}
+                  />
+                </Pressable>
+                <View style={styles.modalButtons}>
+                  <Button
+                    disabled={isUpdating}
                     onPress={() => {
-                      deleteHabit(habitToEdit as string);
+                      updateForm.reset();
                       setHabitToEdit(undefined);
                     }}
+                    mode='outlined'
                   >
-                    <Icon size={30} source='delete-outline' color='red' />
-                  </Pressable>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                    }}
-                  >
-                    <Button
-                      disabled={isUpdating}
-                      onPress={() => {
-                        updateForm.reset();
-                        setHabitToEdit(undefined);
-                      }}
-                    >
-                      Nevermind
-                    </Button>
-                    <Button
-                      disabled={isUpdating}
-                      onPress={updateForm.handleSubmit(handleHabitUpdate)}
-                    >
-                      Update
-                    </Button>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <Modal
-          avoidKeyboard
-          isVisible={Boolean(habitToAddNote)}
-          onBackdropPress={() => setHabitToAddNote(undefined)}
-        >
-          <View style={styles.container}>
-            <View style={styles.modalView}>
-              <View style={{ gap: 8, width: '100%' }}>
-                <Text variant='headlineMedium'>Add a note</Text>
-                <Controller
-                  control={noteForm.control}
-                  name='note'
-                  render={({ field }) => (
-                    <TextInput
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      autoCapitalize='none'
-                      multiline
-                    />
-                  )}
-                />
-                {noteForm.formState.errors.note && (
-                  <Text variant='labelSmall' style={{ color: 'red' }}>
-                    {noteForm.formState.errors.note.message}
-                  </Text>
-                )}
-
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    gap: 8,
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <Button
-                    disabled={isUpdatingHabitTracking}
-                    onPress={() => setHabitToAddNote(undefined)}
-                  >
-                    Nevermind
+                    Cancel
                   </Button>
                   <Button
-                    disabled={isUpdatingHabitTracking}
-                    onPress={noteForm.handleSubmit(handleHabitTrackingUpdate)}
+                    disabled={isUpdating}
+                    onPress={updateForm.handleSubmit(handleHabitUpdate)}
+                    mode='contained'
                   >
                     Update
                   </Button>
                 </View>
               </View>
             </View>
-          </View>
+          </Animated.View>
+        </Modal>
+
+        <Modal
+          avoidKeyboard
+          isVisible={Boolean(habitToAddNote)}
+          onBackdropPress={() => setHabitToAddNote(undefined)}
+          backdropTransitionOutTiming={0}
+          style={styles.modal}
+        >
+          <Animated.View
+            style={[
+              styles.modalView,
+              {
+                opacity: headerAnim,
+                transform: [
+                  {
+                    scale: headerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.9, 1],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.modalContent}>
+              <Text variant='headlineMedium' style={styles.modalTitle}>
+                Add a note
+              </Text>
+              <Controller
+                control={noteForm.control}
+                name='note'
+                render={({ field }) => (
+                  <TextInput
+                    value={field.value}
+                    onChangeText={field.onChange}
+                    autoCapitalize='none'
+                    multiline
+                    mode='outlined'
+                    style={styles.input}
+                  />
+                )}
+              />
+              {noteForm.formState.errors.note && (
+                <Text variant='labelSmall' style={styles.errorText}>
+                  {noteForm.formState.errors.note.message}
+                </Text>
+              )}
+              <View style={styles.modalButtons}>
+                <Button
+                  disabled={isUpdatingHabitTracking}
+                  onPress={() => setHabitToAddNote(undefined)}
+                  mode='outlined'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  disabled={isUpdatingHabitTracking}
+                  onPress={noteForm.handleSubmit(handleHabitTrackingUpdate)}
+                  mode='contained'
+                >
+                  Update
+                </Button>
+              </View>
+            </View>
+          </Animated.View>
         </Modal>
       </View>
     </SafeAreaView>
@@ -522,10 +707,65 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
+  },
+  header: {
+    width: '100%',
+    marginBottom: 16,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    marginTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#545454',
+  },
+  headerTitle: {
+    fontWeight: 'bold',
+  },
+  list: {
+    width: '100%',
+  },
+  habitCard: {
+    marginVertical: 12,
+    paddingHorizontal: 16,
+  },
+  habitCardSurface: {
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: 'white',
+  },
+  habitHeader: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  habitTitle: {
+    fontWeight: 'bold',
+  },
+  habitDescription: {
+    opacity: 0.7,
+  },
+  habitActions: {
+    flexDirection: 'row',
+  },
+  fab: {
+    backgroundColor: '#4CAF50',
+  },
+  fabAction: {
+    backgroundColor: '#4CAF50',
+  },
+  modal: {
+    margin: 0,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   modalView: {
     margin: 20,
@@ -544,8 +784,43 @@ const styles = StyleSheet.create({
     minWidth: 325,
     maxWidth: 325,
   },
-  title: {
-    fontSize: 20,
+  modalContent: {
+    width: '100%',
+    gap: 16,
+  },
+  modalTitle: {
     fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  input: {
+    width: '100%',
+  },
+  errorText: {
+    color: 'red',
+    marginTop: -8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  skeletonContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  skeletonItem: {
+    width: SCREEN_HEIGHT * 0.4,
+    height: SCREEN_HEIGHT * 0.4,
+    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
