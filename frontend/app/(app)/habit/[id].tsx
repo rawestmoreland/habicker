@@ -19,10 +19,10 @@ import {
   eachMonthOfInterval,
   subMonths,
   eachDayOfInterval,
-  isSameDay,
   parseISO,
   differenceInDays,
 } from 'date-fns';
+import { isSameDateIgnoreTimezone } from '@/lib/utils/dates';
 
 export default function HabitDetailScreen() {
   const params = useLocalSearchParams();
@@ -75,7 +75,7 @@ export default function HabitDetailScreen() {
 
       const completedDays = daysInMonth.filter((day) =>
         trackings.data.some((tracking) =>
-          isSameDay(new Date(tracking.completed_on_date), day)
+          isSameDateIgnoreTimezone(tracking.completed_on_date, day)
         )
       ).length;
 

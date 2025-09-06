@@ -15,14 +15,13 @@ import { useGetUserHabits } from '@/lib/hooks/GET/useGetUserHabits';
 import { Tables } from '@/types/supabase';
 import {
   format,
-  isSameDay,
   startOfToday,
   startOfYesterday,
   subDays,
 } from 'date-fns';
 import { useMemo } from 'react';
 import { useIsMutating } from '@tanstack/react-query';
-import { createCompletionDate } from '@/lib/utils/dates';
+import { createCompletionDate, isSameDateIgnoreTimezone } from '@/lib/utils/dates';
 const DayView = () => {
   const { data: habits, isPending: habitsLoading } = useGetUserHabits();
   const { mutate: createHabitTracking, isPending: isCreatingTracking } =
@@ -85,15 +84,15 @@ const DayView = () => {
                 const hasTrackingForDay = Boolean(item.habit_trackings.length)
                   ? item.habit_trackings.some(
                       (tracking: Tables<'habit_trackings'>) =>
-                        isSameDay(
-                          new Date(tracking.completed_on_date as string),
+                        isSameDateIgnoreTimezone(
+                          tracking.completed_on_date as string,
                           new Date(entry[1])
                         )
                     )
                   : false;
                 const trackingForDay = item.habit_trackings.find((tracking) =>
-                  isSameDay(
-                    new Date(tracking.completed_on_date as string),
+                  isSameDateIgnoreTimezone(
+                    tracking.completed_on_date as string,
                     new Date(entry[1])
                   )
                 );

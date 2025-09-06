@@ -35,7 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useUpdateHabit } from '@/lib/hooks/UPDATE/useUpdateHabit';
 import { useUpdateHabitTracking } from '@/lib/hooks/UPDATE/useUpdateHabitTracking';
 import { useDeleteHabit } from '@/lib/hooks/DELETE/useDeleteHabit';
-import { createCompletionDate } from '@/lib/utils/dates';
+import { createCompletionDate, formatDateForCalendar } from '@/lib/utils/dates';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -104,10 +104,9 @@ const HabitCard = ({
   const habitTrackings = item.habit_trackings;
   const completedDates = habitTrackings?.map(
     (tracking: { completed_on_date: string }) => {
-      if (!tracking.completed_on_date) return null;
-      return format(new Date(tracking.completed_on_date), 'yyyy-MM-dd');
+      return formatDateForCalendar(tracking.completed_on_date);
     }
-  );
+  ).filter(Boolean);
 
   return (
     <Animated.View
@@ -198,9 +197,8 @@ const HabitCard = ({
               return;
             if (completedDates?.includes(day.dateString)) {
               const habitTracking = habitTrackings?.find(
-                (tracking: { completed_on_date: string }) =>
-                  format(new Date(tracking.completed_on_date), 'yyyy-MM-dd') ===
-                  day.dateString
+                (tracking: { completed_on_date: string }) => 
+                  formatDateForCalendar(tracking.completed_on_date) === day.dateString
               );
               if (!habitTracking) return;
               onDayLongPress(habitTracking.id);
@@ -210,9 +208,8 @@ const HabitCard = ({
             if (isCreating || isDeleting) return;
             if (completedDates?.includes(day.dateString)) {
               const habitTracking = habitTrackings?.find(
-                (tracking: { completed_on_date: string }) =>
-                  format(new Date(tracking.completed_on_date), 'yyyy-MM-dd') ===
-                  day.dateString
+                (tracking: { completed_on_date: string }) => 
+                  formatDateForCalendar(tracking.completed_on_date) === day.dateString
               );
               if (habitTracking) {
                 onDayPress({
@@ -401,9 +398,6 @@ export default function Home() {
     return format(selectedDate, 'MMMM yyyy');
   }, [selectedDate]);
 
-  const initialDate = useMemo(() => {
-    return format(selectedDate, 'yyyy-MM-dd');
-  }, [selectedDate]);
 
   useEffect(() => {
     Animated.spring(headerAnim, {

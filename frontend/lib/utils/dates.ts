@@ -7,12 +7,31 @@ export const debugDateTime = (date: Date) => {
 };
 
 export const createCompletionDate = (dateString: string) => {
-  // Extract the date parts from the dateString instead of using timestamp
-  const [year, month, date] = dateString.split('-').map(Number);
+  // Store dates as simple date strings (YYYY-MM-DD) instead of full timestamps
+  // This avoids timezone conversion issues when displaying completed dates
+  return dateString;
+};
 
-  // Create UTC date string for selected date at midnight
-  // Note: month is 0-indexed in Date constructor
-  return new Date(Date.UTC(year, month - 1, date, 0, 0, 0, 0)).toISOString();
+export const formatDateForCalendar = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  // If the date is already in YYYY-MM-DD format, use it directly
+  if (!dateString.includes('T')) {
+    return dateString;
+  }
+  
+  // If it's a full timestamp, format it using UTC to avoid timezone shifts
+  const utcDate = new Date(dateString);
+  return `${utcDate.getUTCFullYear()}-${String(utcDate.getUTCMonth() + 1).padStart(2, '0')}-${String(utcDate.getUTCDate()).padStart(2, '0')}`;
+};
+
+export const isSameDateIgnoreTimezone = (dateString1: string, dateString2: string | Date): boolean => {
+  const date1 = formatDateForCalendar(dateString1);
+  const date2 = typeof dateString2 === 'string' 
+    ? formatDateForCalendar(dateString2)
+    : formatDateForCalendar(dateString2.toISOString());
+  
+  return date1 === date2;
 };
 
 export const formatCompletedDatesForCalendar = (
@@ -21,17 +40,11 @@ export const formatCompletedDatesForCalendar = (
   return completedDates.reduce((acc, dateString) => {
     if (!dateString) return acc;
 
-    // Parse the UTC date string
-    const utcDate = new Date(dateString);
-
-    // Format as YYYY-MM-DD using the date parts
-    const localDate = `${utcDate.getUTCFullYear()}-${String(
-      utcDate.getUTCMonth() + 1
-    ).padStart(2, '0')}-${String(utcDate.getUTCDate()).padStart(2, '0')}`;
+    const formattedDate = formatDateForCalendar(dateString);
 
     return {
       ...acc,
-      [localDate]: {
+      [formattedDate]: {
         selected: true,
       },
     };
